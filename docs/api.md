@@ -40,4 +40,35 @@ Create/update body fields:
 
 Errors: `400` validation, `401` unauthenticated write, `404` missing product, `409` alias conflict.
 
-Domain CRUD for news, orders, and socials arrives in later phases.
+### News
+
+Public:
+
+- `GET /api/news` — list news (`createdAt` desc)
+- `GET /api/news/:alias` — news by alias; `404` if missing
+
+Admin (HTTP-only auth cookie required):
+
+- `POST /api/news` — create (`201`)
+- `PATCH /api/news/:id` — partial update
+- `DELETE /api/news/:id` — hard delete (`204`)
+
+Create/update body fields:
+
+| Field | Rules |
+| --- | --- |
+| `title` | string, 1–200 chars |
+| `alias` | lowercase slug `^[a-z0-9]+(?:-[a-z0-9]+)*$`, unique |
+| `description` | plain text string |
+| `mainPhoto` | non-empty string (URL / storage reference) |
+| `content` | HTML string; sanitized on write before persistence |
+
+HTML sanitization (`sanitize-html`) allowlist:
+
+- tags: `p`, `br`, `strong`, `em`, `u`, `ul`, `ol`, `li`, `a`, `h2`, `h3`, `blockquote`
+- `a[href]`: `http`, `https`, `mailto` only
+- stripped: `script`, `iframe`, event handlers, `javascript:` URLs, etc.
+
+Errors: `400` validation, `401` unauthenticated write, `404` missing news, `409` alias conflict.
+
+Domain CRUD for orders and socials arrives in later phases.

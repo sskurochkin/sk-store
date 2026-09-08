@@ -29,6 +29,25 @@ const DEMO_PRODUCTS = [
   },
 ] as const;
 
+const DEMO_NEWS = [
+  {
+    alias: 'autumn-special',
+    title: 'Autumn Special',
+    description: 'Seasonal sourdough and spiced pastries are back.',
+    mainPhoto: 'https://example.com/images/autumn-special.jpg',
+    content:
+      '<p>Our <strong>autumn menu</strong> is ready. Visit us this weekend.</p>',
+  },
+  {
+    alias: 'weekend-hours',
+    title: 'Weekend Hours',
+    description: 'Updated opening hours for Saturday and Sunday.',
+    mainPhoto: 'https://example.com/images/weekend-hours.jpg',
+    content:
+      '<p>We open at <strong>9:00</strong> on weekends. See you soon!</p>',
+  },
+] as const;
+
 async function main(): Promise<void> {
   const passwordHash = await hash(ADMIN_PASSWORD, BCRYPT_ROUNDS);
 
@@ -64,8 +83,27 @@ async function main(): Promise<void> {
     });
   }
 
+  for (const news of DEMO_NEWS) {
+    await prisma.news.upsert({
+      where: { alias: news.alias },
+      create: {
+        title: news.title,
+        alias: news.alias,
+        description: news.description,
+        mainPhoto: news.mainPhoto,
+        content: news.content,
+      },
+      update: {
+        title: news.title,
+        description: news.description,
+        mainPhoto: news.mainPhoto,
+        content: news.content,
+      },
+    });
+  }
+
   console.log(
-    `Seed complete: admin user "${ADMIN_USERNAME}" and ${DEMO_PRODUCTS.length} demo products are ready.`,
+    `Seed complete: admin "${ADMIN_USERNAME}", ${DEMO_PRODUCTS.length} products, ${DEMO_NEWS.length} news items.`,
   );
 }
 
