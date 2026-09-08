@@ -15,13 +15,11 @@ import { JwtStrategy } from './jwt.strategy';
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService<AppConfig, true>) => {
-        const signOptions = {
-          algorithm: 'HS256' as const,
+        const signOptions: NonNullable<JwtModuleOptions['signOptions']> = {
+          algorithm: 'HS256',
           expiresIn: configService.get('jwt.expiresIn', {
             infer: true,
-          }) as NonNullable<
-            NonNullable<JwtModuleOptions['signOptions']>['expiresIn']
-          >,
+          }),
         };
 
         return {

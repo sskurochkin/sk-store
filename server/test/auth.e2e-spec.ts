@@ -135,28 +135,6 @@ describe('Auth (e2e)', () => {
     await agent.get(`${prefix}/auth/me`).expect(401);
   });
 
-  it('temporary guard-check is protected', async () => {
-    await request(app.getHttpServer())
-      .get(`${prefix}/auth/guard-check`)
-      .expect(401);
-
-    const agent = request.agent(app.getHttpServer());
-    await agent
-      .post(`${prefix}/auth/login`)
-      .send({ username: 'admin', password: 'admin123' })
-      .expect(200);
-
-    const protectedResponse = await agent
-      .get(`${prefix}/auth/guard-check`)
-      .expect(200);
-
-    expect(protectedResponse.body).toMatchObject({
-      ok: true,
-      temporary: true,
-      user: { username: 'admin' },
-    });
-  });
-
   it('login endpoint is rate limited', async () => {
     await app.close();
 

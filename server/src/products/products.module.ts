@@ -1,5 +1,12 @@
 import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module';
+import { ProductsController } from './products.controller';
+import { ProductsService } from './products.service';
 
-/** Placeholder module — Products API is Phase 5. */
-@Module({})
+@Module({
+  imports: [AuthModule],
+  controllers: [ProductsController],
+  providers: [ProductsService],
+  exports: [ProductsService],
+})
 export class ProductsModule {}

@@ -14,6 +14,10 @@ SK Store is split into two applications:
 - `PrismaModule` / `PrismaService` with connect/disconnect lifecycle
 - Health: `GET /api/health`
 
-Feature modules (`auth`, `products`, `news`, `orders`, `socials`, `email`) are scaffolded as empty placeholders until later phases.
+## Feature modules
+
+- `auth` — admin login/logout/me via HTTP-only JWT cookie + `JwtAuthGuard`
+- `products` — public product read + admin product CRUD (Phase 5)
+- `news`, `orders`, `socials`, `email` — scaffolded placeholders until later phases
 
 See `development_plan.md` for the full product and architecture plan.

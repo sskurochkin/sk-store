@@ -12,7 +12,8 @@ Admin authentication uses:
 - `POST /api/auth/login` — `{ username, password }` → sets cookie, returns `{ user: { id, username } }`
 - `POST /api/auth/logout` — clears cookie
 - `GET /api/auth/me` — current admin (requires cookie)
-- `GET /api/auth/guard-check` — temporary protected probe for Phase 4 tests
+
+Protected admin writes (for example product mutations) use `JwtAuthGuard`.
 
 ## Cookie
 

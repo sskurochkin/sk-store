@@ -38,18 +38,4 @@ export class AuthController {
   me(@CurrentUser() user: AuthUser) {
     return this.authService.me(user);
   }
-
-  /**
-   * Temporary endpoint for AuthGuard verification in Phase 4 tests.
-   * Remove or replace when real protected admin routes exist (Phase 5+).
-   */
-  @Get('guard-check')
-  @UseGuards(JwtAuthGuard)
-  guardCheck(@CurrentUser() user: AuthUser) {
-    return {
-      ok: true,
-      temporary: true,
-      user,
-    };
-  }
 }
