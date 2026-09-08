@@ -1,5 +1,9 @@
 # API
 
-REST API is served by the NestJS application (`server`).
+REST API is served by the NestJS application under `/api`.
 
-Endpoint surface is defined in `development_plan.md`. Domain modules are added in later phases.
+## Available now
+
+- `GET /api/health`
+
+Domain endpoints arrive in later phases (auth, products, news, orders, socials).
