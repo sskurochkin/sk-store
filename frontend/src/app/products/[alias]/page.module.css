@@ -1,0 +1,30 @@
+.section {
+  padding-block: var(--space-10);
+}
+
+.layout {
+  display: grid;
+  gap: var(--space-8);
+  grid-template-columns: 1fr;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  align-items: flex-start;
+}
+
+.price {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+}
+
+@media (min-width: 60rem) {
+  .layout {
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: var(--space-10);
+    align-items: start;
+  }
+}

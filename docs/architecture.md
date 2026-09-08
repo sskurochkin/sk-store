@@ -41,6 +41,14 @@ Responsive strategy is mobile-first with media queries at `40rem` / `60rem` / `8
 - Root layout: `Header` → `<main>` → `Footer`
 - Public API helper: `frontend/src/services/api.ts`
 
+### Products UI (Phase 12)
+
+- `/products` — catalog listing (RSC) via `getProducts()`; empty → `EmptyState`, API failure → `ErrorState`
+- `/products/[alias]` — product detail (RSC) via `getProductByAlias()`; unknown alias → `notFound()`
+- `frontend/src/services/products.ts` — public product fetch with cache tags `products` / `product:alias:{alias}`
+- `ProductCard` (Server); `ProductGallery` and `QuantityControls` (Client, local quantity 1–99; no cart yet)
+- `next.config.ts` allows `images.remotePatterns` for seed host `example.com`
+
 ### Orders pricing rule
 
 The backend is the source of truth for order money. Clients submit `productId` + `quantity` only. `Product.price` is loaded from PostgreSQL and calculated with Prisma `Decimal` (`price.mul(quantity)`). Client-provided `price` / `totalPrice` are never trusted.
