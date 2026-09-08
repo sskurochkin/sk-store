@@ -95,4 +95,59 @@ Errors: `400` validation, `401` unauthenticated write, `404` missing social.
 
 There is no separate Settings module in MVP — social networks are the initial settings scope.
 
-Domain CRUD for orders arrives in a later phase.
+### Orders
+
+Public (no authentication):
+
+- `POST /api/orders` — create order (`201`)
+
+> **Client-provided `price` and `totalPrice` are never trusted.**
+
+The client may send only product IDs + quantities and customer contact fields. The server:
+
+1. validates the payload;
+2. rejects duplicate `productId` values in `items` (`400`);
+3. loads current products from PostgreSQL;
+4. returns `404` if any product is missing;
+5. calculates line totals and order total from current `Product.price` using Prisma `Decimal` arithmetic;
+6. creates `Order` + `OrderItem` snapshots in a single transaction;
+7. sets `status` to `NEW` (client cannot set status).
+
+Request body:
+
+| Field | Rules |
+| --- | --- |
+| `firstName` | required string, trimmed, 1–100 |
+| `lastName` | required string, trimmed, 1–100 |
+| `userEmail` | required email, trimmed |
+| `userPhone` | required string, trimmed, 5–32 chars |
+| `items` | non-empty array; unique `productId`s |
+| `items[].productId` | required non-empty string (cuid) |
+| `items[].quantity` | required integer, `1`–`1000` |
+
+Unknown fields (including nested `price`, top-level `totalPrice`, `status`) are rejected by the global validation pipe (`forbidNonWhitelisted`).
+
+Response (money as 2-decimal strings):
+
+```json
+{
+  "id": "...",
+  "status": "NEW",
+  "totalPrice": "13.50",
+  "items": [
+    {
+      "productId": "...",
+      "productName": "Croissant",
+      "price": "4.50",
+      "quantity": 3,
+      "totalPrice": "13.50"
+    }
+  ]
+}
+```
+
+Snapshot semantics: `OrderItem` stores `productName`, `price`, `quantity`, `totalPrice` at order time. Later product edits do not change historical items. If a product is deleted, `OrderItem.productId` becomes `null` (`onDelete: SetNull`) while snapshot fields remain.
+
+Errors: `400` validation / duplicate product IDs, `404` product not found, `429` when login-configured throttler limits are hit on this route, `500` unexpected.
+
+Email confirmation is **not** sent in this phase (Phase 9). Admin order management endpoints are not part of this phase.

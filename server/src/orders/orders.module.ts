@@ -1,5 +1,10 @@
 import { Module } from '@nestjs/common';
+import { OrdersController } from './orders.controller';
+import { OrdersService } from './orders.service';
 
-/** Placeholder module — Orders API is Phase 8. */
-@Module({})
+@Module({
+  controllers: [OrdersController],
+  providers: [OrdersService],
+  exports: [OrdersService],
+})
 export class OrdersModule {}

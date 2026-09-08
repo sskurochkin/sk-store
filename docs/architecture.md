@@ -20,6 +20,11 @@ SK Store is split into two applications:
 - `products` — public product read + admin product CRUD (Phase 5)
 - `news` — public news read + admin news CRUD with HTML sanitization on write (Phase 6)
 - `socials` — public social list (MVP settings retrieval) + admin CRUD (Phase 7)
-- `orders`, `email` — scaffolded placeholders until later phases
+- `orders` — public `POST /api/orders` with server-side pricing, Decimal totals, transactional Order + OrderItem snapshots (Phase 8)
+- `email` — scaffolded placeholder until Phase 9
+
+### Orders pricing rule
+
+The backend is the source of truth for order money. Clients submit `productId` + `quantity` only. `Product.price` is loaded from PostgreSQL and calculated with Prisma `Decimal` (`price.mul(quantity)`). Client-provided `price` / `totalPrice` are never trusted.
 
 See `development_plan.md` for the full product and architecture plan.
