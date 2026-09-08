@@ -48,6 +48,28 @@ const DEMO_NEWS = [
   },
 ] as const;
 
+/** Fixed IDs so social seed stays idempotent without a unique natural key. */
+const DEMO_SOCIALS = [
+  {
+    id: 'seed_social_instagram',
+    name: 'Instagram',
+    link: 'https://instagram.com/skstore',
+    icon: 'instagram',
+  },
+  {
+    id: 'seed_social_telegram',
+    name: 'Telegram',
+    link: 'https://t.me/skstore',
+    icon: 'telegram',
+  },
+  {
+    id: 'seed_social_vk',
+    name: 'VK',
+    link: 'https://vk.com/skstore',
+    icon: 'vk',
+  },
+] as const;
+
 async function main(): Promise<void> {
   const passwordHash = await hash(ADMIN_PASSWORD, BCRYPT_ROUNDS);
 
@@ -102,8 +124,25 @@ async function main(): Promise<void> {
     });
   }
 
+  for (const social of DEMO_SOCIALS) {
+    await prisma.social.upsert({
+      where: { id: social.id },
+      create: {
+        id: social.id,
+        name: social.name,
+        link: social.link,
+        icon: social.icon,
+      },
+      update: {
+        name: social.name,
+        link: social.link,
+        icon: social.icon,
+      },
+    });
+  }
+
   console.log(
-    `Seed complete: admin "${ADMIN_USERNAME}", ${DEMO_PRODUCTS.length} products, ${DEMO_NEWS.length} news items.`,
+    `Seed complete: admin "${ADMIN_USERNAME}", ${DEMO_PRODUCTS.length} products, ${DEMO_NEWS.length} news, ${DEMO_SOCIALS.length} socials.`,
   );
 }
 

@@ -19,6 +19,7 @@ SK Store is split into two applications:
 - `auth` — admin login/logout/me via HTTP-only JWT cookie + `JwtAuthGuard`
 - `products` — public product read + admin product CRUD (Phase 5)
 - `news` — public news read + admin news CRUD with HTML sanitization on write (Phase 6)
-- `orders`, `socials`, `email` — scaffolded placeholders until later phases
+- `socials` — public social list (MVP settings retrieval) + admin CRUD (Phase 7)
+- `orders`, `email` — scaffolded placeholders until later phases
 
 See `development_plan.md` for the full product and architecture plan.

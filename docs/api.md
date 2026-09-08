@@ -71,4 +71,28 @@ HTML sanitization (`sanitize-html`) allowlist:
 
 Errors: `400` validation, `401` unauthenticated write, `404` missing news, `409` alias conflict.
 
-Domain CRUD for orders and socials arrives in later phases.
+### Socials (MVP settings retrieval)
+
+Public:
+
+- `GET /api/socials` — list social links ordered by `name` asc (public settings for footer/contacts)
+
+Admin (HTTP-only auth cookie required):
+
+- `POST /api/socials` — create (`201`)
+- `PATCH /api/socials/:id` — partial update
+- `DELETE /api/socials/:id` — hard delete (`204`)
+
+Create/update body fields:
+
+| Field | Rules |
+| --- | --- |
+| `name` | string, 1–100 chars |
+| `link` | `http` or `https` URL (protocol required) |
+| `icon` | non-empty string (icon name / URL / storage key), not binary |
+
+Errors: `400` validation, `401` unauthenticated write, `404` missing social.
+
+There is no separate Settings module in MVP — social networks are the initial settings scope.
+
+Domain CRUD for orders arrives in a later phase.
