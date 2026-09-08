@@ -131,6 +131,14 @@
   outline-offset: 3px;
 }
 
+.success {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  max-width: 36rem;
+}
+
 @media (min-width: 40rem) {
   .item {
     grid-template-columns: 7rem 1fr;

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { CheckoutForm } from "@/components/cart/CheckoutForm";
 import { QuantityControls } from "@/components/product/QuantityControls";
 import { Button } from "@/components/ui/Button/Button";
 import { EmptyState } from "@/components/ui/FeedbackState/FeedbackState";
@@ -10,6 +12,7 @@ import { Text } from "@/components/ui/Text/Text";
 import { useCart } from "@/hooks/useCart";
 import { formatCartMoney, lineSubtotal } from "@/lib/cart-money";
 import { formatPrice } from "@/lib/format-price";
+import type { OrderResponse } from "@/types/order";
 import styles from "./CartPageContent.module.css";
 
 export function CartPageContent() {
@@ -21,12 +24,40 @@ export function CartPageContent() {
     clearCart,
     getTotal,
   } = useCart();
+  const [placedOrder, setPlacedOrder] = useState<OrderResponse | null>(null);
 
   if (!isHydrated) {
     return (
       <Text muted role="status">
         Загрузка корзины…
       </Text>
+    );
+  }
+
+  if (placedOrder) {
+    return (
+      <>
+        <header className={styles.headerRow}>
+          <Heading id="cart-heading" level={1}>
+            Заказ принят
+          </Heading>
+        </header>
+        <div className={styles.success} role="status">
+          <Text>
+            Номер заказа: <strong>{placedOrder.id}</strong>
+          </Text>
+          <p className={styles.totalValue}>
+            Сумма: {formatPrice(placedOrder.totalPrice)}
+          </p>
+          <Text muted>
+            Мы свяжемся с вами для подтверждения. Письмо с составом заказа
+            отправится на указанный email.
+          </Text>
+          <Link href="/products" className={styles.catalogLink}>
+            В каталог
+          </Link>
+        </div>
+      </>
     );
   }
 
@@ -119,6 +150,8 @@ export function CartPageContent() {
           <p className={styles.totalValue}>{formatCartMoney(getTotal())}</p>
         </div>
       </div>
+
+      <CheckoutForm onSuccess={setPlacedOrder} />
     </>
   );
 }

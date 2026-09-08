@@ -54,8 +54,16 @@ Responsive strategy is mobile-first with media queries at `40rem` / `60rem` / `8
 - `CartProvider` in root layout wraps Header / main / Footer; `useCart()` API: `addItem`, `removeItem`, `updateQuantity`, `clearCart`, `getItemCount`, `getTotal`
 - Persistence: `localStorage` key `sk-store:cart` via `frontend/src/lib/cart-storage.ts` only; hydrate after mount
 - Cart item: `productId`, `quantity` (1–99), `name`, `price` (UX snapshot), `mainPhoto`, `alias`
-- `/cart` — list / empty / qty / remove / clear; no checkout CTA (Phase 14)
+- `/cart` — list / empty / qty / remove / clear
 - Header `MiniCart` → `/cart` with item-count badge; product detail `ProductPurchaseControls` → «В корзину»
+
+### Checkout (Phase 14)
+
+- Checkout form on `/cart` (React Hook Form + Zod); no separate `/checkout` route
+- Fields: `firstName`, `lastName`, `userEmail`, `userPhone`, required client-only `consent` (not sent to API)
+- `createOrder()` → `POST /api/orders` with `productId` + `quantity` only; prices never trusted from client
+- Success: `clearCart()` + success panel with order `id` and server `totalPrice`; errors keep the cart
+- `apiPost` in `frontend/src/services/api.ts`; UI: `Checkbox` primitive
 
 ### Orders pricing rule
 

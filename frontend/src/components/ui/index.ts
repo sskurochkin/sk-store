@@ -1,6 +1,7 @@
 export { Badge } from "./Badge/Badge";
 export { Button } from "./Button/Button";
 export { Card } from "./Card/Card";
+export { Checkbox } from "./Checkbox/Checkbox";
 export { Container } from "./Container/Container";
 export {
   EmptyState,
