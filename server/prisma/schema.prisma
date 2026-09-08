@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  NEW
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  alias       String      @unique
+  description String      @db.Text
+  mainPhoto   String
+  gallery     String[]    @default([])
+  price       Decimal     @db.Decimal(12, 2)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+
+  @@index([createdAt])
+}
+
+model News {
+  id          String   @id @default(cuid())
+  title       String
+  alias       String   @unique
+  description String   @db.Text
+  mainPhoto   String
+  content     String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  firstName  String
+  lastName   String
+  userEmail  String
+  userPhone  String
+  totalPrice Decimal     @db.Decimal(12, 2)
+  status     OrderStatus @default(NEW)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  items      OrderItem[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([userEmail])
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  productId   String?
+  productName String
+  price       Decimal @db.Decimal(12, 2)
+  quantity    Int
+  totalPrice  Decimal @db.Decimal(12, 2)
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Social {
+  id   String @id @default(cuid())
+  name String
+  link String
+  icon String
+}
