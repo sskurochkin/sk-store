@@ -1,0 +1,4 @@
+# Local PostgreSQL runs on the host and is not managed by Compose.
+# Add containerized services here later if needed (e.g. mail/storage mocks).
+
+services: {}
