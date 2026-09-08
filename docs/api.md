@@ -111,7 +111,8 @@ The client may send only product IDs + quantities and customer contact fields. T
 4. returns `404` if any product is missing;
 5. calculates line totals and order total from current `Product.price` using Prisma `Decimal` arithmetic;
 6. creates `Order` + `OrderItem` snapshots in a single transaction;
-7. sets `status` to `NEW` (client cannot set status).
+7. sets `status` to `NEW` (client cannot set status);
+8. after the transaction commits, sends order emails via `EmailService` (customer confirmation + business notification).
 
 Request body:
 
@@ -150,4 +151,15 @@ Snapshot semantics: `OrderItem` stores `productName`, `price`, `quantity`, `tota
 
 Errors: `400` validation / duplicate product IDs, `404` product not found, `429` when login-configured throttler limits are hit on this route, `500` unexpected.
 
-Email confirmation is **not** sent in this phase (Phase 9). Admin order management endpoints are not part of this phase.
+### Order email behavior
+
+After a successful DB commit, the API attempts to send:
+
+1. **Customer confirmation** — `to: Order.userEmail`, subject `Order confirmation #<id>`
+2. **Business notification** — `to: ORDER_NOTIFICATION_EMAIL`, subject `New order #<id>`
+
+Email content uses the persisted `Order` / `OrderItem` snapshot (not live product prices). HTML bodies escape user-visible strings; plain text is included as a fallback.
+
+**Email delivery is independent of order persistence.** If SMTP/transport fails after the order is created, the API still returns `201` with the created order. Email failure is logged (order id + error message only; no SMTP password or full customer payload). Clients must not depend on email status in the response.
+
+Admin order management endpoints are not part of this phase. Configure SMTP via environment variables (`SMTP_*`, `MAIL_FROM`, `ORDER_NOTIFICATION_EMAIL`). In local/dev without `SMTP_HOST`, Nodemailer `jsonTransport` is used (no external network).

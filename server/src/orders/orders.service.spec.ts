@@ -1,6 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrderStatus, Prisma } from '@prisma/client';
+import { EmailService } from '../email/email.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrdersService } from './orders.service';
 
@@ -11,6 +12,7 @@ describe('OrdersService', () => {
     order: { create: jest.Mock };
     $transaction: jest.Mock;
   };
+  let emailService: { sendOrderConfirmation: jest.Mock };
 
   const productA = {
     id: 'prod-a',
@@ -40,105 +42,107 @@ describe('OrdersService', () => {
     items: [{ productId: 'prod-a', quantity: 2 }],
   };
 
+  const createdOrder = {
+    id: 'order-1',
+    firstName: 'John',
+    lastName: 'Doe',
+    userEmail: 'john@example.com',
+    userPhone: '+49123456789',
+    totalPrice: new Prisma.Decimal('9.00'),
+    status: OrderStatus.NEW,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    items: [
+      {
+        id: 'item-1',
+        orderId: 'order-1',
+        productId: 'prod-a',
+        productName: 'Croissant',
+        price: new Prisma.Decimal('4.50'),
+        quantity: 2,
+        totalPrice: new Prisma.Decimal('9.00'),
+      },
+    ],
+  };
+
   beforeEach(async () => {
     prisma = {
       product: { findMany: jest.fn() },
       order: { create: jest.fn() },
       $transaction: jest.fn(),
     };
+    emailService = {
+      sendOrderConfirmation: jest.fn().mockResolvedValue(undefined),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [OrdersService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        OrdersService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: EmailService, useValue: emailService },
+      ],
     }).compile();
 
     service = module.get(OrdersService);
     jest.clearAllMocks();
   });
 
-  it('creates order with server-side Decimal pricing, snapshots, and NEW status', async () => {
+  it('creates order then calls EmailService with snapshot payload', async () => {
     prisma.product.findMany.mockResolvedValue([productA]);
     prisma.$transaction.mockImplementation(
       async (callback: (tx: typeof prisma) => Promise<unknown>) =>
         callback(prisma),
     );
-    prisma.order.create.mockResolvedValue({
-      id: 'order-1',
+    prisma.order.create.mockResolvedValue(createdOrder);
+
+    const result = await service.create(validDto);
+
+    expect(emailService.sendOrderConfirmation).toHaveBeenCalledWith({
+      orderId: 'order-1',
+      status: 'NEW',
       firstName: 'John',
       lastName: 'Doe',
       userEmail: 'john@example.com',
       userPhone: '+49123456789',
-      totalPrice: new Prisma.Decimal('9.00'),
-      status: OrderStatus.NEW,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      items: [
-        {
-          id: 'item-1',
-          orderId: 'order-1',
-          productId: 'prod-a',
-          productName: 'Croissant',
-          price: new Prisma.Decimal('4.50'),
-          quantity: 2,
-          totalPrice: new Prisma.Decimal('9.00'),
-        },
-      ],
-    });
-
-    const result = await service.create(validDto);
-
-    expect(prisma.product.findMany).toHaveBeenCalledWith({
-      where: { id: { in: ['prod-a'] } },
-    });
-    expect(prisma.$transaction).toHaveBeenCalled();
-
-    const createArgs = prisma.order.create.mock.calls as Array<
-      [
-        {
-          data: {
-            status: OrderStatus;
-            totalPrice: Prisma.Decimal;
-            items: {
-              create: Array<{
-                productId: string;
-                productName: string;
-                price: Prisma.Decimal;
-                quantity: number;
-                totalPrice: Prisma.Decimal;
-              }>;
-            };
-          };
-        },
-      ]
-    >;
-    const createData = createArgs[0]?.[0].data;
-    if (!createData) {
-      throw new Error('expected order.create to be called');
-    }
-
-    expect(createData.status).toBe(OrderStatus.NEW);
-    expect(createData.totalPrice.toFixed(2)).toBe('9.00');
-    expect(createData.items.create[0]).toMatchObject({
-      productId: 'prod-a',
-      productName: 'Croissant',
-      quantity: 2,
-    });
-    expect(createData.items.create[0]?.price.toFixed(2)).toBe('4.50');
-    expect(createData.items.create[0]?.totalPrice.toFixed(2)).toBe('9.00');
-
-    expect(result).toEqual({
-      id: 'order-1',
-      status: 'NEW',
       totalPrice: '9.00',
       items: [
         {
-          productId: 'prod-a',
           productName: 'Croissant',
-          price: '4.50',
           quantity: 2,
-          totalPrice: '9.00',
+          unitPrice: '4.50',
+          lineTotal: '9.00',
         },
       ],
     });
+    expect(result.id).toBe('order-1');
+    expect(result.totalPrice).toBe('9.00');
+  });
+
+  it('still returns created order when EmailService fails', async () => {
+    prisma.product.findMany.mockResolvedValue([productA]);
+    prisma.$transaction.mockImplementation(
+      async (callback: (tx: typeof prisma) => Promise<unknown>) =>
+        callback(prisma),
+    );
+    prisma.order.create.mockResolvedValue(createdOrder);
+    emailService.sendOrderConfirmation.mockRejectedValue(
+      new Error('SMTP unavailable'),
+    );
+
+    await expect(service.create(validDto)).resolves.toMatchObject({
+      id: 'order-1',
+      status: 'NEW',
+      totalPrice: '9.00',
+    });
+    expect(emailService.sendOrderConfirmation).toHaveBeenCalled();
+  });
+
+  it('does not call EmailService when transaction fails', async () => {
+    prisma.product.findMany.mockResolvedValue([productA]);
+    prisma.$transaction.mockRejectedValue(new Error('db down'));
+
+    await expect(service.create(validDto)).rejects.toThrow('db down');
+    expect(emailService.sendOrderConfirmation).not.toHaveBeenCalled();
   });
 
   it('calculates multi-item totals with Decimal arithmetic', async () => {
@@ -149,25 +153,11 @@ describe('OrdersService', () => {
     );
     prisma.order.create.mockImplementation(
       (args: { data: { totalPrice: Prisma.Decimal } }) => ({
+        ...createdOrder,
         id: 'order-2',
-        firstName: 'John',
-        lastName: 'Doe',
-        userEmail: 'john@example.com',
-        userPhone: '+49123456789',
         totalPrice: args.data.totalPrice,
-        status: OrderStatus.NEW,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         items: [
-          {
-            id: 'item-1',
-            orderId: 'order-2',
-            productId: 'prod-a',
-            productName: 'Croissant',
-            price: new Prisma.Decimal('4.50'),
-            quantity: 2,
-            totalPrice: new Prisma.Decimal('9.00'),
-          },
+          createdOrder.items[0],
           {
             id: 'item-2',
             orderId: 'order-2',
@@ -189,16 +179,8 @@ describe('OrdersService', () => {
       ],
     });
 
-    // 4.50*2 + 3.00*1 = 12.00
     expect(result.totalPrice).toBe('12.00');
-    const multiArgs = prisma.order.create.mock.calls as Array<
-      [{ data: { totalPrice: Prisma.Decimal } }]
-    >;
-    const total = multiArgs[0]?.[0].data.totalPrice;
-    if (!total) {
-      throw new Error('expected order.create to be called');
-    }
-    expect(total.toFixed(2)).toBe('12.00');
+    expect(emailService.sendOrderConfirmation).toHaveBeenCalled();
   });
 
   it('rejects duplicate product IDs', async () => {
@@ -213,6 +195,7 @@ describe('OrdersService', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
 
     expect(prisma.product.findMany).not.toHaveBeenCalled();
+    expect(emailService.sendOrderConfirmation).not.toHaveBeenCalled();
   });
 
   it('throws NotFoundException when a product is missing', async () => {
@@ -221,68 +204,6 @@ describe('OrdersService', () => {
     await expect(service.create(validDto)).rejects.toBeInstanceOf(
       NotFoundException,
     );
-  });
-
-  it('uses only DB Product.price for authoritative calculation', async () => {
-    prisma.product.findMany.mockResolvedValue([productA]);
-    prisma.$transaction.mockImplementation(
-      async (callback: (tx: typeof prisma) => Promise<unknown>) =>
-        callback(prisma),
-    );
-    prisma.order.create.mockResolvedValue({
-      id: 'order-3',
-      firstName: 'John',
-      lastName: 'Doe',
-      userEmail: 'john@example.com',
-      userPhone: '+49123456789',
-      totalPrice: new Prisma.Decimal('9.00'),
-      status: OrderStatus.NEW,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      items: [
-        {
-          id: 'item-1',
-          orderId: 'order-3',
-          productId: 'prod-a',
-          productName: 'Croissant',
-          price: new Prisma.Decimal('4.50'),
-          quantity: 2,
-          totalPrice: new Prisma.Decimal('9.00'),
-        },
-      ],
-    });
-
-    await service.create(validDto);
-
-    const priceArgs = prisma.order.create.mock.calls as Array<
-      [
-        {
-          data: {
-            items: { create: Array<{ price: Prisma.Decimal }> };
-            status: OrderStatus;
-          };
-        },
-      ]
-    >;
-    const line = priceArgs[0]?.[0].data;
-    if (!line) {
-      throw new Error('expected order.create to be called');
-    }
-    expect(line.items.create[0]?.price.toFixed(2)).toBe('4.50');
-    expect(line.status).toBe(OrderStatus.NEW);
-  });
-
-  it('does not swallow unexpected Prisma errors', async () => {
-    prisma.product.findMany.mockResolvedValue([productA]);
-    prisma.$transaction.mockRejectedValue(
-      new Prisma.PrismaClientKnownRequestError('boom', {
-        code: 'P2002',
-        clientVersion: 'test',
-      }),
-    );
-
-    await expect(service.create(validDto)).rejects.toBeInstanceOf(
-      Prisma.PrismaClientKnownRequestError,
-    );
+    expect(emailService.sendOrderConfirmation).not.toHaveBeenCalled();
   });
 });

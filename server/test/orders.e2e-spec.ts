@@ -3,6 +3,8 @@ import { OrderStatus, Prisma } from '@prisma/client';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { GLOBAL_API_PREFIX } from '../src/common/constants/app.constants';
+import { EmailService } from '../src/email/email.service';
+import type { OrderEmailPayload } from '../src/email/types/order-email.type';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { createAuthTestApp } from './create-auth-test-app';
 
@@ -29,6 +31,7 @@ type ProductBody = {
 describe('Orders (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let emailService: { sendOrderConfirmation: jest.Mock };
   const prefix = `/${GLOBAL_API_PREFIX}`;
   const createdProductIds: string[] = [];
   const createdOrderIds: string[] = [];
@@ -40,7 +43,12 @@ describe('Orders (e2e)', () => {
   });
 
   beforeEach(async () => {
-    app = await createAuthTestApp();
+    emailService = {
+      sendOrderConfirmation: jest.fn().mockResolvedValue(undefined),
+    };
+    app = await createAuthTestApp([
+      { provide: EmailService, useValue: emailService },
+    ]);
     prisma = app.get(PrismaService);
     createdProductIds.length = 0;
     createdOrderIds.length = 0;
@@ -378,5 +386,80 @@ describe('Orders (e2e)', () => {
       .expect(201);
 
     trackOrder(response.body as OrderBody);
+  });
+
+  it('invokes EmailService with order snapshot after successful create', async () => {
+    const product = await createProduct({
+      name: 'Croissant',
+      alias: `email-ok-${Date.now()}`,
+      price: 4.5,
+    });
+
+    const response = await request(app.getHttpServer())
+      .post(`${prefix}/orders`)
+      .send({
+        firstName: 'John',
+        lastName: 'Doe',
+        userEmail: 'john@example.com',
+        userPhone: '+49123456789',
+        items: [{ productId: product.id, quantity: 2 }],
+      })
+      .expect(201);
+
+    const order = trackOrder(response.body as OrderBody);
+
+    expect(emailService.sendOrderConfirmation).toHaveBeenCalledTimes(1);
+    const call = emailService.sendOrderConfirmation.mock.calls[0] as [
+      OrderEmailPayload,
+    ];
+    const payload = call[0];
+    expect(payload).toMatchObject({
+      orderId: order.id,
+      status: 'NEW',
+      firstName: 'John',
+      lastName: 'Doe',
+      userEmail: 'john@example.com',
+      userPhone: '+49123456789',
+      totalPrice: '9.00',
+      items: [
+        {
+          productName: 'Croissant',
+          quantity: 2,
+          unitPrice: '4.50',
+          lineTotal: '9.00',
+        },
+      ],
+    });
+  });
+
+  it('returns 201 when EmailService fails after order persistence', async () => {
+    emailService.sendOrderConfirmation.mockRejectedValue(
+      new Error('SMTP unavailable'),
+    );
+
+    const product = await createProduct({
+      alias: `email-fail-${Date.now()}`,
+      price: 4.5,
+    });
+
+    const response = await request(app.getHttpServer())
+      .post(`${prefix}/orders`)
+      .send({
+        firstName: 'John',
+        lastName: 'Doe',
+        userEmail: 'john@example.com',
+        userPhone: '+49123456789',
+        items: [{ productId: product.id, quantity: 1 }],
+      })
+      .expect(201);
+
+    const order = trackOrder(response.body as OrderBody);
+    expect(order.status).toBe('NEW');
+    expect(emailService.sendOrderConfirmation).toHaveBeenCalled();
+
+    const persisted = await prisma.order.findUnique({
+      where: { id: order.id },
+    });
+    expect(persisted).not.toBeNull();
   });
 });

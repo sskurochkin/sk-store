@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -9,6 +10,8 @@ import {
   type Order,
   type OrderItem,
 } from '@prisma/client';
+import { EmailService } from '../email/email.service';
+import type { OrderEmailPayload } from '../email/types/order-email.type';
 import { PrismaService } from '../prisma/prisma.service';
 import type { CreateOrderDto } from './dto/create-order.dto';
 import type { OrderResponse } from './types/order-response.type';
@@ -17,7 +20,12 @@ type OrderWithItems = Order & { items: OrderItem[] };
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(OrdersService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   async create(dto: CreateOrderDto): Promise<OrderResponse> {
     this.assertUniqueProductIds(dto);
@@ -78,6 +86,16 @@ export class OrdersService {
       });
     });
 
+    // Email is intentionally outside the DB transaction.
+    try {
+      await this.emailService.sendOrderConfirmation(this.toEmailPayload(order));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'unknown error';
+      this.logger.error(
+        `Failed to send order email for order ${order.id}: ${message}`,
+      );
+    }
+
     return this.toResponse(order);
   }
 
@@ -88,6 +106,24 @@ export class OrdersService {
         'items must not contain duplicate productId values',
       );
     }
+  }
+
+  private toEmailPayload(order: OrderWithItems): OrderEmailPayload {
+    return {
+      orderId: order.id,
+      status: order.status,
+      firstName: order.firstName,
+      lastName: order.lastName,
+      userEmail: order.userEmail,
+      userPhone: order.userPhone,
+      totalPrice: order.totalPrice.toFixed(2),
+      items: order.items.map((item) => ({
+        productName: item.productName,
+        quantity: item.quantity,
+        unitPrice: item.price.toFixed(2),
+        lineTotal: item.totalPrice.toFixed(2),
+      })),
+    };
   }
 
   private toResponse(order: OrderWithItems): OrderResponse {
