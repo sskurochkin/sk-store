@@ -23,6 +23,17 @@ SK Store is split into two applications:
 - `orders` — public `POST /api/orders` with server-side pricing, Decimal totals, transactional Order + OrderItem snapshots (Phase 8)
 - `email` — `EmailModule` / `EmailService` with Nodemailer transport; order confirmation after successful create (Phase 9)
 
+### Frontend public design system (Phase 10)
+
+Public UI uses CSS variables + CSS Modules (no Tailwind on the public site).
+
+- Tokens: `frontend/src/styles/tokens.css` (colors, typography, spacing, layout, motion)
+- Base: `frontend/src/styles/base.css` (reset, links, focus-visible, selection, reduced-motion)
+- Primitives: `frontend/src/components/ui/` — Button, Container, Section, Heading, Text, Card, Badge, Input, Textarea, IconButton, MediaImage, Loading/Empty/Error states
+- Components are Server Components by default (no `"use client"`)
+
+Responsive strategy is mobile-first with media queries at `40rem` / `60rem` / `80rem` (tablet / desktop / wide).
+
 ### Orders pricing rule
 
 The backend is the source of truth for order money. Clients submit `productId` + `quantity` only. `Product.price` is loaded from PostgreSQL and calculated with Prisma `Decimal` (`price.mul(quantity)`). Client-provided `price` / `totalPrice` are never trusted.

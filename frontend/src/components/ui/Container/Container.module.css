@@ -1,0 +1,22 @@
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin-inline: auto;
+  padding-inline: var(--space-4);
+}
+
+@media (min-width: 40rem) {
+  .container {
+    padding-inline: var(--space-6);
+  }
+}
+
+@media (min-width: 60rem) {
+  .container {
+    padding-inline: var(--space-8);
+  }
+}
+
+.narrow {
+  max-width: var(--content-width);
+}

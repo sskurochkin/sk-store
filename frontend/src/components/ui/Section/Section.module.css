@@ -1,0 +1,29 @@
+.section {
+  width: 100%;
+}
+
+.sm {
+  padding-block: var(--space-6);
+}
+
+.md {
+  padding-block: var(--space-10);
+}
+
+.lg {
+  padding-block: var(--space-16);
+}
+
+@media (min-width: 60rem) {
+  .sm {
+    padding-block: var(--space-8);
+  }
+
+  .md {
+    padding-block: var(--space-12);
+  }
+
+  .lg {
+    padding-block: var(--space-16);
+  }
+}

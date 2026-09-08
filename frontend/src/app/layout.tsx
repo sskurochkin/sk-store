@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
-import "@/styles/tokens.css";
+import { SITE_NAME } from "@/constants/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SK Store",
+  title: {
+    default: SITE_NAME,
+    template: `%s · ${SITE_NAME}`,
+  },
   description: "Bakery showcase and ordering website",
 };
 
