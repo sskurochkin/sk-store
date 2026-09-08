@@ -38,3 +38,45 @@
   gap: var(--space-3);
   margin-top: var(--space-2);
 }
+
+.primaryCta,
+.ghostCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.primaryCta {
+  background-color: var(--color-primary);
+  color: #faf8f5;
+}
+
+.primaryCta:hover {
+  background-color: var(--color-primary-hover);
+  color: #faf8f5;
+}
+
+.ghostCta {
+  background-color: transparent;
+  color: var(--color-primary);
+}
+
+.ghostCta:hover {
+  background-color: var(--color-surface-muted);
+}
+
+.primaryCta:focus-visible,
+.ghostCta:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}

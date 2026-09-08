@@ -34,6 +34,13 @@ Public UI uses CSS variables + CSS Modules (no Tailwind on the public site).
 
 Responsive strategy is mobile-first with media queries at `40rem` / `60rem` / `80rem` (tablet / desktop / wide).
 
+### Public layout (Phase 11)
+
+- `Header` (Server) + `MobileNav` (Client) for open/close only
+- `Footer` (async Server) loads `GET /api/socials` via `getSocials()`; empty/error → footer without social block
+- Root layout: `Header` → `<main>` → `Footer`
+- Public API helper: `frontend/src/services/api.ts`
+
 ### Orders pricing rule
 
 The backend is the source of truth for order money. Clients submit `productId` + `quantity` only. `Product.price` is loaded from PostgreSQL and calculated with Prisma `Decimal` (`price.mul(quantity)`). Client-provided `price` / `totalPrice` are never trusted.

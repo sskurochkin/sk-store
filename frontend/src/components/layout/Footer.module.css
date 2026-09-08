@@ -1,0 +1,116 @@
+.footer {
+  margin-top: auto;
+  padding-block: var(--space-10) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface-muted);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-8);
+  padding-bottom: var(--space-8);
+}
+
+.brandBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 22rem;
+}
+
+.brand {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+.blurb {
+  max-width: 28rem;
+}
+
+.contactPlaceholder {
+  padding-top: var(--space-2);
+}
+
+.heading {
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.navList,
+.socialList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.navLink,
+.socialLink {
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.navLink:hover,
+.socialLink:hover {
+  color: var(--color-primary);
+}
+
+.navLink:focus-visible,
+.socialLink:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.socialIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: none;
+}
+
+.copy {
+  margin: 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 40rem) {
+  .grid {
+    grid-template-columns: 1.4fr 1fr;
+  }
+}
+
+@media (min-width: 60rem) {
+  .grid {
+    grid-template-columns: 1.6fr 1fr 1fr;
+    gap: var(--space-10);
+  }
+}
