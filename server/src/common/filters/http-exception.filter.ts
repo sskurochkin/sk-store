@@ -37,7 +37,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       };
       message = body.message ?? message;
       error = body.error ?? error;
-    } else if (exception instanceof Error) {
+    } else if (exception instanceof Error && statusCode < 500) {
       message = exception.message;
     }
 

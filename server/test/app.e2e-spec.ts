@@ -10,6 +10,10 @@ describe('Health (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
+    if (!process.env.JWT_SECRET) {
+      process.env.JWT_SECRET = 'test-jwt-secret-min-16-chars';
+    }
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
