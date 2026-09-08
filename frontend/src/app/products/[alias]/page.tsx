@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductGallery } from "@/components/product/ProductGallery";
-import { QuantityControls } from "@/components/product/QuantityControls";
+import { ProductPurchaseControls } from "@/components/product/ProductPurchaseControls";
 import { Container } from "@/components/ui/Container/Container";
 import { Heading } from "@/components/ui/Heading/Heading";
 import { Section } from "@/components/ui/Section/Section";
@@ -60,7 +60,15 @@ export default async function ProductDetailPage({
             </Heading>
             <Text>{product.description}</Text>
             <p className={styles.price}>{formatPrice(product.price)}</p>
-            <QuantityControls />
+            <ProductPurchaseControls
+              product={{
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                mainPhoto: product.mainPhoto,
+                alias: product.alias,
+              }}
+            />
           </div>
         </div>
       </Container>

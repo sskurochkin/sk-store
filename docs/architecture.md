@@ -46,8 +46,16 @@ Responsive strategy is mobile-first with media queries at `40rem` / `60rem` / `8
 - `/products` — catalog listing (RSC) via `getProducts()`; empty → `EmptyState`, API failure → `ErrorState`
 - `/products/[alias]` — product detail (RSC) via `getProductByAlias()`; unknown alias → `notFound()`
 - `frontend/src/services/products.ts` — public product fetch with cache tags `products` / `product:alias:{alias}`
-- `ProductCard` (Server); `ProductGallery` and `QuantityControls` (Client, local quantity 1–99; no cart yet)
+- `ProductCard` (Server); `ProductGallery` and `QuantityControls` (Client)
 - `next.config.ts` allows `images.remotePatterns` for seed host `example.com`
+
+### Cart (Phase 13)
+
+- `CartProvider` in root layout wraps Header / main / Footer; `useCart()` API: `addItem`, `removeItem`, `updateQuantity`, `clearCart`, `getItemCount`, `getTotal`
+- Persistence: `localStorage` key `sk-store:cart` via `frontend/src/lib/cart-storage.ts` only; hydrate after mount
+- Cart item: `productId`, `quantity` (1–99), `name`, `price` (UX snapshot), `mainPhoto`, `alias`
+- `/cart` — list / empty / qty / remove / clear; no checkout CTA (Phase 14)
+- Header `MiniCart` → `/cart` with item-count badge; product detail `ProductPurchaseControls` → «В корзину»
 
 ### Orders pricing rule
 

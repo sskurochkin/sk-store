@@ -14,3 +14,4 @@ export { MediaImage } from "./MediaImage/MediaImage";
 export { Section } from "./Section/Section";
 export { Text } from "./Text/Text";
 export { Textarea } from "./Textarea/Textarea";
+export { ToastProvider, useToast } from "./Toast/ToastProvider";

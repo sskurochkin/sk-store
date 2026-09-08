@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MiniCart } from "@/components/cart/MiniCart";
 import { Container } from "@/components/ui/Container/Container";
 import { MAIN_NAV_LINKS } from "@/constants/navigation";
 import { SITE_NAME } from "@/constants/site";
@@ -25,7 +26,10 @@ export function Header() {
           </ul>
         </nav>
 
-        <MobileNav links={MAIN_NAV_LINKS} />
+        <div className={styles.actions}>
+          <MiniCart />
+          <MobileNav links={MAIN_NAV_LINKS} />
+        </div>
       </Container>
     </header>
   );
