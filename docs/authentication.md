@@ -15,6 +15,18 @@ Admin authentication uses:
 
 Protected admin writes (for example product mutations) use `JwtAuthGuard`.
 
+## Frontend (Phase 17)
+
+Admin UI uses same-origin `/api/*` through a Next.js rewrite to Nest so the HTTP-only cookie is scoped to the Next host.
+
+```text
+Browser → Next `/api/auth/*` → rewrite → Nest Auth
+```
+
+- `/admin/login` — public login form
+- `/admin/*` — middleware + server layout guard via `GET /api/auth/me`
+- JWT is never stored in localStorage / sessionStorage / client state
+
 ## Cookie
 
 - HttpOnly: always

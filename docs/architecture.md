@@ -23,6 +23,7 @@ SK Store is split into two applications:
 - `orders` — public `POST /api/orders` with server-side pricing, Decimal totals, transactional Order + OrderItem snapshots (Phase 8)
 - `contact-requests` — public `POST /api/contact-requests` with validation + throttling; status always `NEW` (Phase 16); admin list/status later
 - `email` — `EmailModule` / `EmailService` with Nodemailer transport; order confirmation after successful create (Phase 9)
+- Admin UI foundation (Phase 17) — same-origin `/api` rewrite, `/admin/login`, protected `/admin` shell (see below)
 
 ### Frontend public design system (Phase 10)
 
@@ -124,6 +125,28 @@ Security:
 - no automatic deletion / retention purge
 
 Frontend Admin UI route (later): `/admin/contact-requests`
+
+### Admin UI foundation (Phase 17)
+
+```text
+Browser
+   │  same-origin /api/*
+   ▼
+Next.js (:3000)
+   │  rewrite → Nest (:3001)
+   ▼
+NestJS Auth / API
+   │
+   ▼
+HTTP-only JWT cookie (`access_token`)
+```
+
+- `next.config.ts` rewrites `/api/:path*` → `NEXT_PUBLIC_API_URL/api/:path*`
+- Browser helpers use same-origin `/api/...` (empty base URL in the browser)
+- Server Components still call Nest origin for public data; authenticated server checks forward `Cookie`
+- `middleware` protects `/admin/*` (except login) via Nest `GET /api/auth/me`
+- Routes: `/admin/login` (public), `/admin` dashboard + shell; CRUD sections marked coming soon
+- JWT never in localStorage / sessionStorage / URL / rendered HTML
 
 ### Orders pricing rule
 

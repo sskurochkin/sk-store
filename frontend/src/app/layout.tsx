@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-import { CartProvider } from "@/components/cart/CartProvider";
-import { Footer } from "@/components/layout/Footer";
-import { Header } from "@/components/layout/Header";
 import { ToastProvider } from "@/components/ui/Toast/ToastProvider";
 import { SITE_NAME } from "@/constants/site";
 import "./globals.css";
@@ -23,15 +20,7 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={styles.body}>
-        <ToastProvider>
-          <CartProvider>
-            <Header />
-            <main id="main-content" className={styles.main}>
-              {children}
-            </main>
-            <Footer />
-          </CartProvider>
-        </ToastProvider>
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

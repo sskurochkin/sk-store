@@ -1,4 +1,4 @@
-import { API_URL } from "@/constants/site";
+import { getApiBaseUrl } from "@/constants/site";
 
 export class ApiError extends Error {
   constructor(
@@ -14,6 +14,10 @@ type FetchOptions = {
   /** Next.js fetch cache options */
   next?: NextFetchRequestConfig;
   cache?: RequestCache;
+  /** Forward Cookie header (server-side authenticated requests). */
+  cookie?: string;
+  /** Browser credentials mode (default: same-origin). */
+  credentials?: RequestCredentials;
 };
 
 function extractErrorMessage(body: unknown, fallback: string): string {
@@ -32,20 +36,36 @@ function extractErrorMessage(body: unknown, fallback: string): string {
   return fallback;
 }
 
+function buildUrl(path: string): string {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${getApiBaseUrl()}${normalized}`;
+}
+
+function buildHeaders(
+  base: Record<string, string>,
+  cookie?: string,
+): HeadersInit {
+  if (!cookie) {
+    return base;
+  }
+  return { ...base, Cookie: cookie };
+}
+
 /**
- * Minimal public API fetch helper. Server Components only by default.
+ * JSON GET helper.
+ * Browser → same-origin `/api/...` (Next rewrite).
+ * Server → Nest origin (optionally with Cookie forwarding).
  */
 export async function apiGet<T>(
   path: string,
   options: FetchOptions = {},
 ): Promise<T> {
-  const url = `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
-
-  const response = await fetch(url, {
+  const response = await fetch(buildUrl(path), {
     method: "GET",
-    headers: { Accept: "application/json" },
+    headers: buildHeaders({ Accept: "application/json" }, options.cookie),
     next: options.next,
     cache: options.cache,
+    credentials: options.credentials,
   });
 
   if (!response.ok) {
@@ -63,19 +83,26 @@ export async function apiGet<T>(
 }
 
 /**
- * Browser-oriented JSON POST helper (checkout, etc.).
+ * JSON POST helper (checkout, contact form, auth).
+ * Browser uses same-origin `/api/...` so Set-Cookie binds to the Next host.
  */
-export async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const url = `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
-
-  const response = await fetch(url, {
+export async function apiPost<T>(
+  path: string,
+  body: unknown,
+  options: FetchOptions = {},
+): Promise<T> {
+  const response = await fetch(buildUrl(path), {
     method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers: buildHeaders(
+      {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      options.cookie,
+    ),
     body: JSON.stringify(body),
     cache: "no-store",
+    credentials: options.credentials ?? "same-origin",
   });
 
   if (!response.ok) {

@@ -846,10 +846,14 @@ Before MVP completion verify:
 - public contact request form on `/contacts`;
 - **Admin Contact Requests UI/API is deferred** to Admin phases.
 
-### Phase 17 — Admin UI foundation
-- login;
-- dashboard shell;
-- navigation.
+### Phase 17 — Admin UI Foundation
+- same-origin `/api/*` via Next.js rewrite to Nest;
+- HTTP-only cookie auth on the Next origin;
+- middleware + layout protection for `/admin/*`;
+- `/admin/login`, logout, admin shell (sidebar / topbar);
+- dashboard landing page;
+- responsive mobile drawer;
+- **Admin CRUD modules deferred** to later phases.
 
 ### Phase 18 — Admin Products
 - product CRUD UI.

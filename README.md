@@ -52,8 +52,10 @@ cd server && npm run typecheck && npm run lint && npm run build
 
 ## Phase
 
-Current focus: **Phase 16 — Contacts + Contact Requests** (public form + API; Admin Contact Requests UI later).
+Current focus: **Phase 17 — Admin UI Foundation** completed (login/logout, protected `/admin`, same-origin `/api` rewrite).
 
-Public pages include `/`, `/products`, `/news`, `/contacts` (socials + contact form), `/cart`.
+Public pages: `/`, `/products`, `/news`, `/contacts`, `/cart`.
 
-Public write APIs: `POST /api/orders`, `POST /api/contact-requests`.
+Admin: `/admin/login`, `/admin` (dashboard). CRUD modules come later.
+
+Browser API calls use same-origin `/api/*` (Next.js rewrite → NestJS). `NEXT_PUBLIC_API_URL` is the Nest origin for rewrites and server-side fetches.

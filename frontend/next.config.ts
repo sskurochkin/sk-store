@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+const nestOrigin =
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
+  "http://localhost:3001";
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -9,6 +13,14 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${nestOrigin}/api/:path*`,
+      },
+    ];
   },
 };
 
