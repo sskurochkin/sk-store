@@ -145,7 +145,7 @@ HTTP-only JWT cookie (`access_token`)
 - Browser helpers use same-origin `/api/...` (empty base URL in the browser)
 - Server Components still call Nest origin for public data; authenticated server checks forward `Cookie`
 - `middleware` protects `/admin/*` (except login) via Nest `GET /api/auth/me`
-- Routes: `/admin/login` (public), `/admin` dashboard + shell; Products CRUD live; other CRUD sections marked coming soon
+- Routes: `/admin/login` (public), `/admin` dashboard + shell; Products + News CRUD live; other CRUD sections marked coming soon
 - JWT never in localStorage / sessionStorage / URL / rendered HTML
 
 ### Admin Products (Phase 18)
@@ -155,6 +155,13 @@ HTTP-only JWT cookie (`access_token`)
 - `apiPatch` / `apiDelete` in `frontend/src/services/api.ts` (cookie / same-origin)
 - Form: RHF + Zod (`admin-product-schema`); `mainPhoto` / gallery as URL strings (no upload)
 - Edit loads product by scanning admin list (no `GET /products/:id`); public catalog ISR ~60s until Phase 23 revalidation
+
+### Admin News (Phase 19)
+
+- Routes: `/admin/news`, `/admin/news/new`, `/admin/news/[id]/edit`
+- `frontend/src/services/admin-news.ts` — list (`cache: "no-store"`), create, update, delete via Nest News API
+- Form: RHF + Zod (`admin-news-schema`); `content` as HTML textarea (server `sanitizeNewsHtml` on write); optional `tags`; `mainPhoto` URL string
+- Edit loads news by scanning admin list (no `GET /news/:id`); public `/news` ISR ~60s until Phase 23 revalidation
 
 ### Orders pricing rule
 
