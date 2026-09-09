@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { ReactNode } from "react";
 import { Text } from "../Text/Text";
 import styles from "./FeedbackState.module.css";
@@ -16,7 +17,7 @@ export function LoadingState({
 }: Partial<BaseStateProps> & { title?: string }) {
   return (
     <div
-      className={[styles.state, className].filter(Boolean).join(" ")}
+      className={clsx(styles.state, className)}
       role="status"
       aria-live="polite"
     >
@@ -38,7 +39,7 @@ export function EmptyState({
   className,
 }: BaseStateProps) {
   return (
-    <div className={[styles.state, className].filter(Boolean).join(" ")}>
+    <div className={clsx(styles.state, className)}>
       <p className={styles.title}>{title}</p>
       {description ? (
         <Text muted size="sm">
@@ -58,9 +59,7 @@ export function ErrorState({
 }: BaseStateProps) {
   return (
     <div
-      className={[styles.state, styles.error, className]
-        .filter(Boolean)
-        .join(" ")}
+      className={clsx(styles.state, styles.error, className)}
       role="alert"
     >
       <p className={styles.title}>{title}</p>

@@ -74,19 +74,19 @@ const DEMO_SOCIALS = [
     id: 'seed_social_instagram',
     name: 'Instagram',
     link: 'https://instagram.com/skstore',
-    icon: 'instagram',
+    icon: 'i-instagram',
   },
   {
     id: 'seed_social_telegram',
     name: 'Telegram',
     link: 'https://t.me/skstore',
-    icon: 'telegram',
+    icon: 'i-mail',
   },
   {
     id: 'seed_social_vk',
     name: 'VK',
     link: 'https://vk.com/skstore',
-    icon: 'vk',
+    icon: 'i-vkontakte',
   },
 ] as const;
 

@@ -43,8 +43,7 @@
   color: var(--color-text-muted);
 }
 
-.navList,
-.socialList {
+.navList {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -53,45 +52,21 @@
   gap: var(--space-2);
 }
 
-.navLink,
-.socialLink {
+.navLink {
   color: var(--color-text);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   text-decoration: none;
 }
 
-.navLink:hover,
-.socialLink:hover {
+.navLink:hover {
   color: var(--color-primary);
 }
 
-.navLink:focus-visible,
-.socialLink:focus-visible {
+.navLink:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
-}
-
-.socialLink {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.socialIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2rem;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-muted);
-  text-transform: none;
 }
 
 .copy {

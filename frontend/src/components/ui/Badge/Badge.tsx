@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { HTMLAttributes, ReactNode } from "react";
 import styles from "./Badge.module.css";
 
@@ -14,12 +15,8 @@ export function Badge({
   className,
   ...rest
 }: BadgeProps) {
-  const classes = [styles.badge, styles[tone], className]
-    .filter(Boolean)
-    .join(" ");
-
   return (
-    <span className={classes} {...rest}>
+    <span className={clsx(styles.badge, styles[tone], className)} {...rest}>
       {children}
     </span>
   );

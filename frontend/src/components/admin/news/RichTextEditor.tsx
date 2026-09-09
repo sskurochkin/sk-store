@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import dynamic from "next/dynamic";
 import { useId, type ReactNode } from "react";
 import "react-quill-new/dist/quill.snow.css";
@@ -62,7 +63,7 @@ export function RichTextEditor({
   const fieldId = id || generatedId;
   const hintId = hint ? `${fieldId}-hint` : undefined;
   const errorId = error ? `${fieldId}-error` : undefined;
-  const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
+  const describedBy = clsx(errorId, hintId) || undefined;
 
   return (
     <div className={styles.field}>
@@ -76,13 +77,11 @@ export function RichTextEditor({
       </label>
 
       <div
-        className={[
+        className={clsx(
           styles.editor,
-          error ? styles.invalid : undefined,
-          disabled ? styles.disabled : undefined,
-        ]
-          .filter(Boolean)
-          .join(" ")}
+          error && styles.invalid,
+          disabled && styles.disabled,
+        )}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
       >

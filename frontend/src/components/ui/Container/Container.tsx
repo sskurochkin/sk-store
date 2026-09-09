@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { ReactNode } from "react";
 import styles from "./Container.module.css";
 
@@ -15,13 +16,9 @@ export function Container({
   narrow = false,
   as: Tag = "div",
 }: ContainerProps) {
-  const classes = [
-    styles.container,
-    narrow ? styles.narrow : undefined,
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  return <Tag className={classes}>{children}</Tag>;
+  return (
+    <Tag className={clsx(styles.container, narrow && styles.narrow, className)}>
+      {children}
+    </Tag>
+  );
 }

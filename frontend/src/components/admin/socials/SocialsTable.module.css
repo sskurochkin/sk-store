@@ -39,12 +39,6 @@
   text-decoration: underline;
 }
 
-.icon {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-}
-
 .link {
   font-weight: var(--font-weight-semibold);
   text-decoration: none;

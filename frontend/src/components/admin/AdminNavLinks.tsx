@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ADMIN_NAV_ITEMS } from "@/constants/admin-navigation";
@@ -21,7 +22,7 @@ export function AdminNavLinks({ onNavigate, className }: AdminNavLinksProps) {
   const pathname = usePathname();
 
   return (
-    <ul className={[styles.list, className].filter(Boolean).join(" ")}>
+    <ul className={clsx(styles.list, className)}>
       {ADMIN_NAV_ITEMS.map((item) => {
         const active = !item.comingSoon && isActivePath(pathname, item.href);
 
@@ -29,7 +30,7 @@ export function AdminNavLinks({ onNavigate, className }: AdminNavLinksProps) {
           return (
             <li key={item.href}>
               <span
-                className={[styles.link, styles.soon].join(" ")}
+                className={clsx(styles.link, styles.soon)}
                 aria-disabled="true"
                 title="Раздел будет доступен в следующих фазах"
               >
@@ -44,9 +45,7 @@ export function AdminNavLinks({ onNavigate, className }: AdminNavLinksProps) {
           <li key={item.href}>
             <Link
               href={item.href}
-              className={[styles.link, active ? styles.active : undefined]
-                .filter(Boolean)
-                .join(" ")}
+              className={clsx(styles.link, active && styles.active)}
               aria-current={active ? "page" : undefined}
               onClick={onNavigate}
             >

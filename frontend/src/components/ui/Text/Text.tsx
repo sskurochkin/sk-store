@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { HTMLAttributes, ReactNode } from "react";
 import styles from "./Text.module.css";
 
@@ -16,17 +17,16 @@ export function Text({
   className,
   ...rest
 }: TextProps) {
-  const classes = [
-    styles.text,
-    styles[size],
-    muted ? styles.muted : undefined,
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
-    <Tag className={classes} {...rest}>
+    <Tag
+      className={clsx(
+        styles.text,
+        styles[size],
+        muted && styles.muted,
+        className,
+      )}
+      {...rest}
+    >
       {children}
     </Tag>
   );

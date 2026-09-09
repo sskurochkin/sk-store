@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import styles from "./Button.module.css";
 
@@ -22,15 +23,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   },
   ref,
 ) {
-  const classes = [styles.button, styles[variant], styles[size], className]
-    .filter(Boolean)
-    .join(" ");
-
   return (
     <button
       ref={ref}
       type={type}
-      className={classes}
+      className={clsx(styles.button, styles[variant], styles[size], className)}
       disabled={disabled}
       {...rest}
     >

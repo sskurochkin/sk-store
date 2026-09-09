@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -74,12 +75,10 @@ export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
         />
 
         <div
-          className={[
+          className={clsx(
             styles.layout,
-            hasSidebar ? styles.layoutWithSidebar : undefined,
-          ]
-            .filter(Boolean)
-            .join(" ")}
+            hasSidebar && styles.layoutWithSidebar,
+          )}
         >
           <article className={styles.article}>
             <header className={styles.header}>

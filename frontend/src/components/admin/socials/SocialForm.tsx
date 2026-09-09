@@ -107,7 +107,7 @@ export function SocialForm(props: SocialFormProps) {
         required
         disabled={isSubmitting}
         error={errors.icon?.message}
-        hint="Имя, URL или storage key (например instagram)."
+        hint="Имя символа из спрайта (например i-instagram, i-vkontakte)."
         {...register("icon")}
       />
 

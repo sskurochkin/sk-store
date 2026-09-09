@@ -81,7 +81,7 @@ Responsive strategy is mobile-first with media queries at `40rem` / `60rem` / `8
 
 - `/contacts` — RSC page via existing `getSocials()` (tag `socials`, revalidate 60s)
 - Shows social links (no invented phone/email/address); empty/API failure → neutral `EmptyState`
-- Shared display helper: `components/social/SocialLinks` (plain-text `icon` + `name`, external `rel`)
+- Shared display helper: `components/social/SocialLinks` — sprite `Icon` + name; variants `footer` | `cards` | `inline` | `preview`
 - Public **contact request form** (Client Component) → `POST /api/contact-requests`
 - Form fields: `firstName`, `lastName`, `phone` (Belarus mask → `+375…`), `email`, `message`, required `consent` (stored)
 - Page order: socials → map placeholder (future) → contact form

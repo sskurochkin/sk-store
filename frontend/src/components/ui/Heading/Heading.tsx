@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { HTMLAttributes, ReactNode } from "react";
 import styles from "./Heading.module.css";
 
@@ -33,12 +34,12 @@ export function Heading({
   ...rest
 }: HeadingProps) {
   const Tag = TAG_BY_LEVEL[level];
-  const classes = [styles.heading, LEVEL_CLASS[level], className]
-    .filter(Boolean)
-    .join(" ");
 
   return (
-    <Tag className={classes} {...rest}>
+    <Tag
+      className={clsx(styles.heading, LEVEL_CLASS[level], className)}
+      {...rest}
+    >
       {children}
     </Tag>
   );

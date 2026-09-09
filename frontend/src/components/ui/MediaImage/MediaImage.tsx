@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import Image, { type ImageProps } from "next/image";
 import styles from "./MediaImage.module.css";
 
@@ -38,28 +39,23 @@ export function MediaImage({
   ...rest
 }: MediaImageProps) {
   const useFill = Boolean(fill) || aspectRatio !== "auto";
-  const frameClasses = [
-    styles.frame,
-    aspectRatio !== "auto" ? ASPECT_CLASS[aspectRatio] : styles.ratioAuto,
-    frameClassName,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  const imageClasses = [
-    styles.image,
-    objectFit === "contain" ? styles.contain : styles.cover,
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
 
   if (useFill) {
     return (
-      <div className={frameClasses}>
+      <div
+        className={clsx(
+          styles.frame,
+          aspectRatio !== "auto" ? ASPECT_CLASS[aspectRatio] : styles.ratioAuto,
+          frameClassName,
+        )}
+      >
         <Image
           alt={alt}
-          className={imageClasses}
+          className={clsx(
+            styles.image,
+            objectFit === "contain" ? styles.contain : styles.cover,
+            className,
+          )}
           fill
           sizes={sizes}
           {...rest}
@@ -71,7 +67,11 @@ export function MediaImage({
   return (
     <Image
       alt={alt}
-      className={imageClasses}
+      className={clsx(
+        styles.image,
+        objectFit === "contain" ? styles.contain : styles.cover,
+        className,
+      )}
       sizes={sizes}
       width={width}
       height={height}

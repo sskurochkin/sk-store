@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { ReactNode } from "react";
 import styles from "./Section.module.css";
 
@@ -17,16 +18,11 @@ export function Section({
   as: Tag = "section",
   "aria-labelledby": ariaLabelledBy,
 }: SectionProps) {
-  const classes = [
-    styles.section,
-    styles[spacing],
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
-    <Tag className={classes} aria-labelledby={ariaLabelledBy}>
+    <Tag
+      className={clsx(styles.section, styles[spacing], className)}
+      aria-labelledby={ariaLabelledBy}
+    >
       {children}
     </Tag>
   );

@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import styles from "./NewsArticleContent.module.css";
 
 type NewsArticleContentProps = {
@@ -14,7 +15,10 @@ export function NewsArticleContent({
   html,
   className,
 }: NewsArticleContentProps) {
-  const classes = [styles.content, className].filter(Boolean).join(" ");
-
-  return <div className={classes} dangerouslySetInnerHTML={{ __html: html }} />;
+  return (
+    <div
+      className={clsx(styles.content, className)}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
 }

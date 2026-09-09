@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import styles from "./Input.module.css";
 
@@ -23,7 +24,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 ) {
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
-  const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
+  const describedBy = clsx(errorId, hintId) || undefined;
 
   return (
     <div className={styles.field}>
@@ -38,9 +39,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       <input
         id={id}
         ref={ref}
-        className={[styles.control, error ? styles.invalid : undefined, className]
-          .filter(Boolean)
-          .join(" ")}
+        className={clsx(styles.control, error && styles.invalid, className)}
         required={required}
         disabled={disabled}
         aria-invalid={error ? true : undefined}

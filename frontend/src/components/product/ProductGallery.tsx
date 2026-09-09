@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import { useState } from "react";
 import { MediaImage } from "@/components/ui/MediaImage/MediaImage";
 import styles from "./ProductGallery.module.css";
@@ -40,12 +41,10 @@ export function ProductGallery({
               <li key={`${src}-${index}`}>
                 <button
                   type="button"
-                  className={[
+                  className={clsx(
                     styles.thumbButton,
-                    isActive ? styles.thumbActive : undefined,
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
+                    isActive && styles.thumbActive,
+                  )}
                   aria-label={`Показать фото ${index + 1}`}
                   aria-pressed={isActive}
                   onClick={() => setActiveIndex(index)}

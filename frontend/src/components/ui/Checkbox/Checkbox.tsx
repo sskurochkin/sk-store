@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import {
   forwardRef,
   type InputHTMLAttributes,
@@ -28,7 +29,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             id={id}
             ref={ref}
             type="checkbox"
-            className={[styles.control, className].filter(Boolean).join(" ")}
+            className={clsx(styles.control, className)}
             required={required}
             disabled={disabled}
             aria-invalid={error ? true : undefined}

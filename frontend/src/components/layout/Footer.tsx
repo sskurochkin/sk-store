@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SocialLinks } from "@/components/social/SocialLinks";
 import { Container } from "@/components/ui/Container/Container";
 import { Text } from "@/components/ui/Text/Text";
 import { MAIN_NAV_LINKS } from "@/constants/navigation";
@@ -42,23 +43,7 @@ export async function Footer() {
         {socials.length > 0 ? (
           <div>
             <p className={styles.heading}>Мы в сети</p>
-            <ul className={styles.socialList}>
-              {socials.map((social) => (
-                <li key={social.id}>
-                  <a
-                    href={social.link}
-                    className={styles.socialLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className={styles.socialIcon} aria-hidden="true">
-                      {social.icon}
-                    </span>
-                    <span>{social.name}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
+            <SocialLinks socials={socials} variant="footer" />
           </div>
         ) : null}
       </Container>

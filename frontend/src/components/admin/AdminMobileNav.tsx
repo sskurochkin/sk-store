@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { Icon } from "@/components/ui/icon/Icon";
@@ -52,9 +53,7 @@ export function AdminMobileNav() {
 
       <div
         id={panelId}
-        className={[styles.panel, open ? styles.panelOpen : undefined]
-          .filter(Boolean)
-          .join(" ")}
+        className={clsx(styles.panel, open && styles.panelOpen)}
         hidden={!open}
       >
         <nav aria-label="Админ-меню">

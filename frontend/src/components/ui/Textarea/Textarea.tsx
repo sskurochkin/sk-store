@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { ReactNode, TextareaHTMLAttributes } from "react";
 import styles from "./Textarea.module.css";
 
@@ -24,7 +25,7 @@ export function Textarea({
 }: TextareaProps) {
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
-  const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
+  const describedBy = clsx(errorId, hintId) || undefined;
 
   return (
     <div className={styles.field}>
@@ -38,9 +39,7 @@ export function Textarea({
       </label>
       <textarea
         id={id}
-        className={[styles.control, error ? styles.invalid : undefined, className]
-          .filter(Boolean)
-          .join(" ")}
+        className={clsx(styles.control, error && styles.invalid, className)}
         required={required}
         disabled={disabled}
         rows={rows}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AdminTablePagination } from "@/components/admin/AdminTablePagination";
+import { SocialLinks } from "@/components/social/SocialLinks";
 import { useAdminTablePage } from "@/lib/admin-table";
 import type { Social } from "@/types/social";
 import styles from "./SocialsTable.module.css";
@@ -48,7 +49,11 @@ export function SocialsTable({ socials }: SocialsTableProps) {
                   </a>
                 </td>
                 <td className={styles.td}>
-                  <span className={styles.icon}>{social.icon}</span>
+                  <SocialLinks
+                    socials={[social]}
+                    variant="preview"
+                    aria-label={`Иконка ${social.name}`}
+                  />
                 </td>
                 <td className={styles.td}>
                   <Link

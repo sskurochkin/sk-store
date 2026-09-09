@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import styles from "./IconButton.module.css";
 
@@ -20,14 +21,10 @@ export function IconButton({
   "aria-label": ariaLabel,
   ...rest
 }: IconButtonProps) {
-  const classes = [styles.iconButton, styles[size], className]
-    .filter(Boolean)
-    .join(" ");
-
   return (
     <button
       type={type}
-      className={classes}
+      className={clsx(styles.iconButton, styles[size], className)}
       disabled={disabled}
       aria-label={ariaLabel}
       {...rest}

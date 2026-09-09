@@ -53,7 +53,7 @@ export default async function ContactsPage() {
             </Heading>
 
             {socials.length > 0 ? (
-              <SocialLinks socials={socials} />
+              <SocialLinks socials={socials} variant="cards" />
             ) : (
               <EmptyState
                 title="Социальные сети пока не указаны"

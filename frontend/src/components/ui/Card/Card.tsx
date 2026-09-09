@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { HTMLAttributes, ReactNode } from "react";
 import styles from "./Card.module.css";
 
@@ -14,16 +15,11 @@ export function Card({
   padded = true,
   ...rest
 }: CardProps) {
-  const classes = [
-    styles.card,
-    padded ? styles.padded : undefined,
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
-    <Tag className={classes} {...rest}>
+    <Tag
+      className={clsx(styles.card, padded && styles.padded, className)}
+      {...rest}
+    >
       {children}
     </Tag>
   );
