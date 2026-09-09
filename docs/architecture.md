@@ -154,14 +154,14 @@ HTTP-only JWT cookie (`access_token`)
 - `frontend/src/services/admin-products.ts` — list (`cache: "no-store"`), create, update, delete via Nest Products API
 - `apiPatch` / `apiDelete` in `frontend/src/services/api.ts` (cookie / same-origin)
 - Form: RHF + Zod (`admin-product-schema`); `mainPhoto` / gallery as URL strings (no upload)
-- Edit loads product by scanning admin list (no `GET /products/:id`); public catalog ISR ~60s until Phase 23 revalidation
+- Edit loads product by scanning admin list (no `GET /products/:id`); public catalog cache tags invalidated on admin CUD (Phase 23)
 
 ### Admin News (Phase 19)
 
 - Routes: `/admin/news`, `/admin/news/new`, `/admin/news/[id]/edit`
 - `frontend/src/services/admin-news.ts` — list (`cache: "no-store"`), create, update, delete via Nest News API
 - Form: RHF + Zod (`admin-news-schema`); `content` as HTML textarea (server `sanitizeNewsHtml` on write); optional `tags`; `mainPhoto` URL string
-- Edit loads news by scanning admin list (no `GET /news/:id`); public `/news` ISR ~60s until Phase 23 revalidation
+- Edit loads news by scanning admin list (no `GET /news/:id`); public `/news` cache tags invalidated on admin CUD (Phase 23)
 
 ### Admin Orders (Phase 20)
 
@@ -185,7 +185,22 @@ HTTP-only JWT cookie (`access_token`)
 - Frontend hub: `/admin/settings` (extensible); socials CRUD at `/admin/settings/socials/new` and `/admin/settings/socials/[id]/edit`
 - `frontend/src/services/admin-socials.ts` — list (`cache: "no-store"`), create, update, delete
 - Form: RHF + Zod (`admin-social-schema`); fields `name`, `link` (http/https), `icon` (string key/URL — no binary upload)
-- Public footer/contacts still use `getSocials()` ISR ~60s until Phase 23 revalidation
+- Public footer/contacts use `getSocials()`; tags invalidated on socials CUD (Phase 23)
+
+### Cache revalidation (Phase 23)
+
+After successful admin create/update/delete, client forms call authenticated Server Actions that run `revalidateTag` on the Next.js server:
+
+| Mutation | Tags |
+| --- | --- |
+| Product CUD | `products`, `product:alias:{alias}` (old + new on update) |
+| News CUD | `news`, `news:alias:{alias}` (old + new on update) |
+| Social CUD | `socials`, `settings` |
+
+- Helpers: `frontend/src/lib/cache-tags.ts` (builders + alias allowlist), `frontend/src/lib/revalidate-public-cache.ts` (`"use server"`)
+- Revalidate actions require admin session via `getCurrentUser()`; arbitrary tag strings from the client are not accepted
+- Orders / contact-requests: no public cache tags
+- ISR `revalidate: 60` remains a fallback if a tag is missed
 
 ### Admin list UX (shared)
 

@@ -11,6 +11,7 @@ import {
   adminProductFormSchema,
   type AdminProductFormValues,
 } from "@/lib/admin-product-schema";
+import { revalidateProductsCache } from "@/lib/revalidate-public-cache";
 import { ApiError } from "@/services/api";
 import {
   createProduct,
@@ -76,8 +77,12 @@ export function ProductForm(props: ProductFormProps) {
     try {
       if (props.mode === "create") {
         await createProduct(payload);
+        await revalidateProductsCache({ aliases: [payload.alias] });
       } else {
         await updateProduct(props.product.id, payload);
+        await revalidateProductsCache({
+          aliases: [props.product.alias, payload.alias],
+        });
       }
       router.push("/admin/products");
       router.refresh();

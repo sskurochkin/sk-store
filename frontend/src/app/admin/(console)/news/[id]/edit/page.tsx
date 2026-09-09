@@ -58,10 +58,14 @@ export default async function AdminEditNewsPage({
           Удаление
         </h2>
         <Text muted size="sm">
-          Удаление необратимо. Публичная страница новости исчезнет после
-          обновления кэша.
+          Удаление необратимо. Публичная страница новости обновится сразу
+          после сброса кэша.
         </Text>
-        <NewsDeleteButton newsId={item.id} newsTitle={item.title} />
+        <NewsDeleteButton
+          newsId={item.id}
+          newsTitle={item.title}
+          newsAlias={item.alias}
+        />
       </section>
     </div>
   );

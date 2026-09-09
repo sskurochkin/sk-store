@@ -6,6 +6,7 @@ import { ConfirmModal } from "@/components/admin/ConfirmModal";
 import { Button } from "@/components/ui/Button/Button";
 import { ApiError } from "@/services/api";
 import { deleteSocial } from "@/services/admin-socials";
+import { revalidateSocialsCache } from "@/lib/revalidate-public-cache";
 import styles from "./SocialDeleteButton.module.css";
 
 type SocialDeleteButtonProps = {
@@ -27,6 +28,7 @@ export function SocialDeleteButton({
     setIsDeleting(true);
     try {
       await deleteSocial(socialId);
+      await revalidateSocialsCache();
       setOpen(false);
       router.push("/admin/settings");
       router.refresh();

@@ -12,6 +12,7 @@ import {
 } from "@/lib/admin-social-schema";
 import { ApiError } from "@/services/api";
 import { createSocial, updateSocial } from "@/services/admin-socials";
+import { revalidateSocialsCache } from "@/lib/revalidate-public-cache";
 import type { Social } from "@/types/social";
 import styles from "./SocialForm.module.css";
 
@@ -60,6 +61,7 @@ export function SocialForm(props: SocialFormProps) {
       } else {
         await updateSocial(props.social.id, payload);
       }
+      await revalidateSocialsCache();
       router.push("/admin/settings");
       router.refresh();
     } catch (error: unknown) {

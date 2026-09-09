@@ -58,12 +58,13 @@ export default async function AdminEditProductPage({
           Удаление
         </h2>
         <Text muted size="sm">
-          Удаление необратимо. Публичная страница товара исчезнет после
-          обновления кэша каталога.
+          Удаление необратимо. Публичная страница товара обновится сразу
+          после сброса кэша каталога.
         </Text>
         <ProductDeleteButton
           productId={product.id}
           productName={product.name}
+          productAlias={product.alias}
         />
       </section>
     </div>

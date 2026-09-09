@@ -6,16 +6,19 @@ import { ConfirmModal } from "@/components/admin/ConfirmModal";
 import { Button } from "@/components/ui/Button/Button";
 import { ApiError } from "@/services/api";
 import { deleteNews } from "@/services/admin-news";
+import { revalidateNewsCache } from "@/lib/revalidate-public-cache";
 import styles from "./NewsDeleteButton.module.css";
 
 type NewsDeleteButtonProps = {
   newsId: string;
   newsTitle: string;
+  newsAlias: string;
 };
 
 export function NewsDeleteButton({
   newsId,
   newsTitle,
+  newsAlias,
 }: NewsDeleteButtonProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -27,6 +30,7 @@ export function NewsDeleteButton({
     setIsDeleting(true);
     try {
       await deleteNews(newsId);
+      await revalidateNewsCache({ aliases: [newsAlias] });
       setOpen(false);
       router.push("/admin/news");
       router.refresh();

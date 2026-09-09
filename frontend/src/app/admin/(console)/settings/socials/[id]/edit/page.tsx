@@ -59,7 +59,7 @@ export default async function AdminEditSocialPage({
         </h2>
         <Text muted size="sm">
           Удаление необратимо. Ссылка исчезнет из футера и контактов после
-          обновления кэша.
+          сброса кэша.
         </Text>
         <SocialDeleteButton socialId={social.id} socialName={social.name} />
       </section>

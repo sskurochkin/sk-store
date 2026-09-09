@@ -14,6 +14,7 @@ import {
 } from "@/lib/admin-news-schema";
 import { ApiError } from "@/services/api";
 import { createNews, updateNews } from "@/services/admin-news";
+import { revalidateNewsCache } from "@/lib/revalidate-public-cache";
 import type { News } from "@/types/news";
 import styles from "./NewsForm.module.css";
 
@@ -77,8 +78,12 @@ export function NewsForm(props: NewsFormProps) {
     try {
       if (props.mode === "create") {
         await createNews(payload);
+        await revalidateNewsCache({ aliases: [payload.alias] });
       } else {
         await updateNews(props.news.id, payload);
+        await revalidateNewsCache({
+          aliases: [props.news.alias, payload.alias],
+        });
       }
       router.push("/admin/news");
       router.refresh();

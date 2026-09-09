@@ -6,16 +6,19 @@ import { ConfirmModal } from "@/components/admin/ConfirmModal";
 import { Button } from "@/components/ui/Button/Button";
 import { ApiError } from "@/services/api";
 import { deleteProduct } from "@/services/admin-products";
+import { revalidateProductsCache } from "@/lib/revalidate-public-cache";
 import styles from "./ProductDeleteButton.module.css";
 
 type ProductDeleteButtonProps = {
   productId: string;
   productName: string;
+  productAlias: string;
 };
 
 export function ProductDeleteButton({
   productId,
   productName,
+  productAlias,
 }: ProductDeleteButtonProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -27,6 +30,7 @@ export function ProductDeleteButton({
     setIsDeleting(true);
     try {
       await deleteProduct(productId);
+      await revalidateProductsCache({ aliases: [productAlias] });
       setOpen(false);
       router.push("/admin/products");
       router.refresh();
