@@ -110,7 +110,7 @@ The client may send only product IDs + quantities and customer contact fields. T
 3. loads current products from PostgreSQL;
 4. returns `404` if any product is missing;
 5. calculates line totals and order total from current `Product.price` using Prisma `Decimal` arithmetic;
-6. creates `Order` + `OrderItem` snapshots in a single transaction;
+6. creates `Order` + `OrderItem` snapshots in a single transaction with id `YYYYMMDD-N` (Europe/Minsk day + daily sequence);
 7. sets `status` to `NEW` (client cannot set status);
 8. after the transaction commits, sends order emails via `EmailService` (customer confirmation + business notification).
 
@@ -121,7 +121,8 @@ Request body:
 | `firstName` | required string, trimmed, 1–100 |
 | `lastName` | required string, trimmed, 1–100 |
 | `userEmail` | required email, trimmed |
-| `userPhone` | required string, trimmed, 5–32 chars |
+| `userPhone` | required Belarus phone `+375XXXXXXXXX` |
+| `comment` | optional string, trimmed, max 1000; empty omitted |
 | `items` | non-empty array; unique `productId`s |
 | `items[].productId` | required non-empty string (cuid) |
 | `items[].quantity` | required integer, `1`–`1000` |
@@ -132,9 +133,10 @@ Response (money as 2-decimal strings):
 
 ```json
 {
-  "id": "...",
+  "id": "20260909-1",
   "status": "NEW",
   "totalPrice": "13.50",
+  "comment": null,
   "items": [
     {
       "productId": "...",
@@ -146,6 +148,8 @@ Response (money as 2-decimal strings):
   ]
 }
 ```
+
+Order ids are human-readable: `YYYYMMDD-N` in the Europe/Minsk calendar (example: first order on 9 Sep 2026 → `20260909-1`). Existing legacy cuid ids remain valid if present.
 
 Snapshot semantics: `OrderItem` stores `productName`, `price`, `quantity`, `totalPrice` at order time. Later product edits do not change historical items. If a product is deleted, `OrderItem.productId` becomes `null` (`onDelete: SetNull`) while snapshot fields remain.
 

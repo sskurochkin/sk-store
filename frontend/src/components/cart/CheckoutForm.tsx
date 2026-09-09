@@ -6,7 +6,12 @@ import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/Button/Button";
 import { Checkbox } from "@/components/ui/Checkbox/Checkbox";
 import { Input } from "@/components/ui/Input/Input";
+import { Textarea } from "@/components/ui/Textarea/Textarea";
 import { useCart } from "@/hooks/useCart";
+import {
+  formatBelarusPhoneMask,
+  toBelarusPhoneE164,
+} from "@/lib/belarus-phone";
 import {
   checkoutFormSchema,
   type CheckoutFormValues,
@@ -36,6 +41,7 @@ export function CheckoutForm({ onSuccess }: CheckoutFormProps) {
       lastName: "",
       userEmail: "",
       userPhone: "",
+      comment: "",
       consent: false,
     },
   });
@@ -48,12 +54,15 @@ export function CheckoutForm({ onSuccess }: CheckoutFormProps) {
       return;
     }
 
+    const comment = values.comment?.trim();
+
     try {
       const order = await createOrder({
         firstName: values.firstName,
         lastName: values.lastName,
         userEmail: values.userEmail,
-        userPhone: values.userPhone,
+        userPhone: toBelarusPhoneE164(values.userPhone),
+        ...(comment ? { comment } : {}),
         items: items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
@@ -127,15 +136,41 @@ export function CheckoutForm({ onSuccess }: CheckoutFormProps) {
           />
         </div>
         <div className={styles.gridFull}>
-          <Input
-            id="checkout-phone"
-            label="Телефон"
-            type="tel"
-            autoComplete="tel"
-            required
+          <Controller
+            name="userPhone"
+            control={control}
+            render={({ field }) => (
+              <Input
+                id="checkout-phone"
+                label="Телефон"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="+375 (29) 123-45-67"
+                hint="Формат: +375 (XX) XXX-XX-XX"
+                required
+                disabled={disabled}
+                error={errors.userPhone?.message}
+                name={field.name}
+                ref={field.ref}
+                onBlur={field.onBlur}
+                value={field.value}
+                onChange={(event) => {
+                  field.onChange(formatBelarusPhoneMask(event.target.value));
+                }}
+              />
+            )}
+          />
+        </div>
+        <div className={styles.gridFull}>
+          <Textarea
+            id="checkout-comment"
+            label="Комментарий к заказу"
+            hint="Необязательно"
+            rows={3}
             disabled={disabled}
-            error={errors.userPhone?.message}
-            {...register("userPhone")}
+            error={errors.comment?.message}
+            {...register("comment")}
           />
         </div>
         <div className={styles.gridFull}>

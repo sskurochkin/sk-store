@@ -51,11 +51,12 @@ model News {
 }
 
 model Order {
-  id         String      @id @default(cuid())
+  id         String      @id
   firstName  String
   lastName   String
   userEmail  String
   userPhone  String
+  comment    String?     @db.Text
   totalPrice Decimal     @db.Decimal(12, 2)
   status     OrderStatus @default(NEW)
   createdAt  DateTime    @default(now())

@@ -4,7 +4,9 @@ import {
   IsArray,
   IsEmail,
   IsInt,
+  IsOptional,
   IsString,
+  Matches,
   Max,
   MaxLength,
   Min,
@@ -17,6 +19,17 @@ import {
 
 function trimString({ value }: { value: unknown }): unknown {
   return typeof value === 'string' ? value.trim() : value;
+}
+
+function trimOptionalComment({ value }: { value: unknown }): unknown {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (typeof value !== 'string') {
+    return value;
+  }
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? undefined : trimmed;
 }
 
 @ValidatorConstraint({ name: 'uniqueOrderProductIds', async: false })
@@ -68,9 +81,16 @@ export class CreateOrderDto {
 
   @Transform(trimString)
   @IsString()
-  @MinLength(5)
-  @MaxLength(32)
+  @Matches(/^\+375\d{9}$/, {
+    message: 'userPhone must be a Belarus number in +375XXXXXXXXX format',
+  })
   userPhone!: string;
+
+  @Transform(trimOptionalComment)
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  comment?: string;
 
   @IsArray()
   @ArrayMinSize(1, { message: 'items must contain at least one item' })

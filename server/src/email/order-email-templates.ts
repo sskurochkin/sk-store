@@ -44,6 +44,7 @@ export function buildCustomerOrderEmail(payload: OrderEmailPayload): {
     `Total: €${payload.totalPrice}`,
     '',
     `Status: ${payload.status}`,
+    ...(payload.comment ? ['', `Comment: ${payload.comment}`] : []),
   ].join('\n');
 
   const html = [
@@ -54,6 +55,9 @@ export function buildCustomerOrderEmail(payload: OrderEmailPayload): {
     formatItemsHtml(payload),
     `<p><strong>Total:</strong> €${escapeHtml(payload.totalPrice)}</p>`,
     `<p><strong>Status:</strong> ${escapeHtml(payload.status)}</p>`,
+    payload.comment
+      ? `<p><strong>Comment:</strong> ${escapeHtml(payload.comment)}</p>`
+      : '',
   ].join('');
 
   return { subject, text, html };
@@ -73,6 +77,7 @@ export function buildBusinessOrderEmail(payload: OrderEmailPayload): {
     `Customer: ${name}`,
     `Email: ${payload.userEmail}`,
     `Phone: ${payload.userPhone}`,
+    ...(payload.comment ? [`Comment: ${payload.comment}`] : []),
     '',
     'Items:',
     formatItemsPlain(payload),
@@ -88,6 +93,9 @@ export function buildBusinessOrderEmail(payload: OrderEmailPayload): {
     `<p><strong>Customer:</strong> ${escapeHtml(name)}</p>`,
     `<p><strong>Email:</strong> ${escapeHtml(payload.userEmail)}</p>`,
     `<p><strong>Phone:</strong> ${escapeHtml(payload.userPhone)}</p>`,
+    payload.comment
+      ? `<p><strong>Comment:</strong> ${escapeHtml(payload.comment)}</p>`
+      : '',
     `<p><strong>Items:</strong></p>`,
     formatItemsHtml(payload),
     `<p><strong>Total:</strong> €${escapeHtml(payload.totalPrice)}</p>`,

@@ -9,7 +9,7 @@ Connection is configured via `DATABASE_URL` in `server/.env`.
 - `Admin` — admin credentials (`username` unique; `passwordHash` only)
 - `Product` — catalog item (`alias` unique; `gallery` as `String[]`; `price` as `Decimal(12,2)`)
 - `News` — news article (`alias` unique; `content` as text/HTML)
-- `Order` — customer order snapshot (`status` enum; `totalPrice` as `Decimal(12,2)`)
+- `Order` — customer order snapshot (`id` as `YYYYMMDD-N`; optional `comment`; `status` enum; `totalPrice` as `Decimal(12,2)`)
 - `OrderItem` — relational line items with price/name snapshots
 - `Social` — social network links
 

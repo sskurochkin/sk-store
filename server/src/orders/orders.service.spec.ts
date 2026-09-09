@@ -9,7 +9,8 @@ describe('OrdersService', () => {
   let service: OrdersService;
   let prisma: {
     product: { findMany: jest.Mock };
-    order: { create: jest.Mock };
+    order: { create: jest.Mock; findMany: jest.Mock };
+    $executeRawUnsafe: jest.Mock;
     $transaction: jest.Mock;
   };
   let emailService: { sendOrderConfirmation: jest.Mock };
@@ -38,16 +39,17 @@ describe('OrdersService', () => {
     firstName: 'John',
     lastName: 'Doe',
     userEmail: 'john@example.com',
-    userPhone: '+49123456789',
+    userPhone: '+375291234567',
     items: [{ productId: 'prod-a', quantity: 2 }],
   };
 
   const createdOrder = {
-    id: 'order-1',
+    id: '20260909-1',
     firstName: 'John',
     lastName: 'Doe',
     userEmail: 'john@example.com',
-    userPhone: '+49123456789',
+    userPhone: '+375291234567',
+    comment: null,
     totalPrice: new Prisma.Decimal('9.00'),
     status: OrderStatus.NEW,
     createdAt: new Date(),
@@ -55,7 +57,7 @@ describe('OrdersService', () => {
     items: [
       {
         id: 'item-1',
-        orderId: 'order-1',
+        orderId: '20260909-1',
         productId: 'prod-a',
         productName: 'Croissant',
         price: new Prisma.Decimal('4.50'),
@@ -68,7 +70,8 @@ describe('OrdersService', () => {
   beforeEach(async () => {
     prisma = {
       product: { findMany: jest.fn() },
-      order: { create: jest.fn() },
+      order: { create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
+      $executeRawUnsafe: jest.fn().mockResolvedValue(undefined),
       $transaction: jest.fn(),
     };
     emailService = {
@@ -85,6 +88,8 @@ describe('OrdersService', () => {
 
     service = module.get(OrdersService);
     jest.clearAllMocks();
+    prisma.order.findMany.mockResolvedValue([]);
+    prisma.$executeRawUnsafe.mockResolvedValue(undefined);
   });
 
   it('creates order then calls EmailService with snapshot payload', async () => {
@@ -97,13 +102,27 @@ describe('OrdersService', () => {
 
     const result = await service.create(validDto);
 
+    expect(prisma.order.create).toHaveBeenCalled();
+    const createCall = prisma.order.create.mock.calls[0] as [
+      {
+        data: {
+          id: string;
+          userPhone: string;
+          comment: string | null;
+        };
+      },
+    ];
+    expect(createCall[0].data.id).toMatch(/^\d{8}-\d+$/);
+    expect(createCall[0].data.userPhone).toBe('+375291234567');
+    expect(createCall[0].data.comment).toBeNull();
     expect(emailService.sendOrderConfirmation).toHaveBeenCalledWith({
-      orderId: 'order-1',
+      orderId: '20260909-1',
       status: 'NEW',
       firstName: 'John',
       lastName: 'Doe',
       userEmail: 'john@example.com',
-      userPhone: '+49123456789',
+      userPhone: '+375291234567',
+      comment: null,
       totalPrice: '9.00',
       items: [
         {
@@ -114,8 +133,32 @@ describe('OrdersService', () => {
         },
       ],
     });
-    expect(result.id).toBe('order-1');
+    expect(result.id).toBe('20260909-1');
     expect(result.totalPrice).toBe('9.00');
+    expect(result.comment).toBeNull();
+  });
+
+  it('persists optional comment', async () => {
+    prisma.product.findMany.mockResolvedValue([productA]);
+    prisma.$transaction.mockImplementation(
+      async (callback: (tx: typeof prisma) => Promise<unknown>) =>
+        callback(prisma),
+    );
+    prisma.order.create.mockResolvedValue({
+      ...createdOrder,
+      comment: 'Leave at the door',
+    });
+
+    const result = await service.create({
+      ...validDto,
+      comment: 'Leave at the door',
+    });
+
+    const createCall = prisma.order.create.mock.calls[0] as [
+      { data: { comment: string | null } },
+    ];
+    expect(createCall[0].data.comment).toBe('Leave at the door');
+    expect(result.comment).toBe('Leave at the door');
   });
 
   it('still returns created order when EmailService fails', async () => {
@@ -130,7 +173,7 @@ describe('OrdersService', () => {
     );
 
     await expect(service.create(validDto)).resolves.toMatchObject({
-      id: 'order-1',
+      id: '20260909-1',
       status: 'NEW',
       totalPrice: '9.00',
     });
@@ -152,15 +195,15 @@ describe('OrdersService', () => {
         callback(prisma),
     );
     prisma.order.create.mockImplementation(
-      (args: { data: { totalPrice: Prisma.Decimal } }) => ({
+      (args: { data: { totalPrice: Prisma.Decimal; id: string } }) => ({
         ...createdOrder,
-        id: 'order-2',
+        id: args.data.id,
         totalPrice: args.data.totalPrice,
         items: [
           createdOrder.items[0],
           {
             id: 'item-2',
-            orderId: 'order-2',
+            orderId: args.data.id,
             productId: 'prod-b',
             productName: 'Baguette',
             price: new Prisma.Decimal('3.00'),

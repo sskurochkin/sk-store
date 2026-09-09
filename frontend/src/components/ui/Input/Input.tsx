@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode } from "react";
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import styles from "./Input.module.css";
 
 export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id"> & {
@@ -8,16 +8,19 @@ export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id"> & {
   error?: ReactNode;
 };
 
-export function Input({
-  id,
-  label,
-  hint,
-  error,
-  className,
-  required,
-  disabled,
-  ...rest
-}: InputProps) {
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+  {
+    id,
+    label,
+    hint,
+    error,
+    className,
+    required,
+    disabled,
+    ...rest
+  },
+  ref,
+) {
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
@@ -34,6 +37,7 @@ export function Input({
       </label>
       <input
         id={id}
+        ref={ref}
         className={[styles.control, error ? styles.invalid : undefined, className]
           .filter(Boolean)
           .join(" ")}
@@ -55,4 +59,4 @@ export function Input({
       ) : null}
     </div>
   );
-}
+});

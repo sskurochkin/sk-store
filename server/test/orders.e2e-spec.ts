@@ -117,7 +117,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         items: [{ productId: product.id, quantity: 3 }],
       })
       .expect(201);
@@ -147,7 +147,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         items: [{ productId: product.id, quantity: 2, price: '0.01' }],
       })
       .expect(400);
@@ -159,7 +159,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         totalPrice: '0.01',
         items: [{ productId: product.id, quantity: 2 }],
       })
@@ -172,7 +172,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         items: [{ productId: product.id, quantity: 2 }],
       })
       .expect(201);
@@ -200,7 +200,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         items: [
           { productId: a.id, quantity: 2 },
           { productId: b.id, quantity: 1 },
@@ -219,7 +219,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         items: [{ productId: 'missing-product-id', quantity: 1 }],
       })
       .expect(404);
@@ -235,7 +235,7 @@ describe('Orders (e2e)', () => {
           firstName: 'John',
           lastName: 'Doe',
           userEmail: 'john@example.com',
-          userPhone: '+49123456789',
+          userPhone: '+375291234567',
           items: [{ productId: product.id, quantity }],
         })
         .expect(400);
@@ -251,7 +251,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         items: [
           { productId: product.id, quantity: 2 },
           { productId: product.id, quantity: 3 },
@@ -273,7 +273,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         items: [{ productId: product.id, quantity: 2 }],
       })
       .expect(201);
@@ -317,7 +317,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         items: [{ productId: product.id, quantity: 2 }],
       })
       .expect(201);
@@ -350,7 +350,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         status: 'COMPLETED',
         items: [{ productId: product.id, quantity: 1 }],
       })
@@ -362,7 +362,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         items: [{ productId: product.id, quantity: 1 }],
       })
       .expect(201);
@@ -380,7 +380,7 @@ describe('Orders (e2e)', () => {
         firstName: 'Jane',
         lastName: 'Roe',
         userEmail: 'jane@example.com',
-        userPhone: '+49999888777',
+        userPhone: '+375331112233',
         items: [{ productId: product.id, quantity: 1 }],
       })
       .expect(201);
@@ -401,7 +401,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         items: [{ productId: product.id, quantity: 2 }],
       })
       .expect(201);
@@ -419,7 +419,7 @@ describe('Orders (e2e)', () => {
       firstName: 'John',
       lastName: 'Doe',
       userEmail: 'john@example.com',
-      userPhone: '+49123456789',
+      userPhone: '+375291234567',
       totalPrice: '9.00',
       items: [
         {
@@ -448,7 +448,7 @@ describe('Orders (e2e)', () => {
         firstName: 'John',
         lastName: 'Doe',
         userEmail: 'john@example.com',
-        userPhone: '+49123456789',
+        userPhone: '+375291234567',
         items: [{ productId: product.id, quantity: 1 }],
       })
       .expect(201);

@@ -13,5 +13,6 @@ export type OrderResponse = {
   status: 'NEW' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
   /** Decimal money serialized as a fixed 2-fraction-digit string. */
   totalPrice: string;
+  comment: string | null;
   items: OrderItemResponse[];
 };

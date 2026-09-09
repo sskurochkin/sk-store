@@ -9,12 +9,23 @@ import {
   Prisma,
   type Order,
   type OrderItem,
+  type PrismaClient,
 } from '@prisma/client';
 import { EmailService } from '../email/email.service';
 import type { OrderEmailPayload } from '../email/types/order-email.type';
 import { PrismaService } from '../prisma/prisma.service';
 import type { CreateOrderDto } from './dto/create-order.dto';
+import {
+  getMinskDateKey,
+  nextDailyOrderId,
+  ORDER_ID_ADVISORY_LOCK_KEY1,
+} from './order-id';
 import type { OrderResponse } from './types/order-response.type';
+
+type TransactionClient = Omit<
+  PrismaClient,
+  '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'
+>;
 
 type OrderWithItems = Order & { items: OrderItem[] };
 
@@ -68,12 +79,16 @@ export class OrdersService {
     );
 
     const order = await this.prisma.$transaction(async (tx) => {
+      const orderId = await this.allocateDailyOrderId(tx);
+
       return tx.order.create({
         data: {
+          id: orderId,
           firstName: dto.firstName.trim(),
           lastName: dto.lastName.trim(),
           userEmail: dto.userEmail.trim(),
           userPhone: dto.userPhone.trim(),
+          comment: dto.comment?.trim() || null,
           totalPrice: orderTotal,
           status: OrderStatus.NEW,
           items: {
@@ -99,6 +114,27 @@ export class OrdersService {
     return this.toResponse(order);
   }
 
+  private async allocateDailyOrderId(tx: TransactionClient): Promise<string> {
+    const dateKey = getMinskDateKey();
+    const dateLockKey = Number(dateKey);
+
+    await tx.$executeRawUnsafe(
+      'SELECT pg_advisory_xact_lock($1::int4, $2::int4)',
+      ORDER_ID_ADVISORY_LOCK_KEY1,
+      dateLockKey,
+    );
+
+    const existing = await tx.order.findMany({
+      where: { id: { startsWith: `${dateKey}-` } },
+      select: { id: true },
+    });
+
+    return nextDailyOrderId(
+      dateKey,
+      existing.map((row) => row.id),
+    );
+  }
+
   private assertUniqueProductIds(dto: CreateOrderDto): void {
     const ids = dto.items.map((item) => item.productId);
     if (new Set(ids).size !== ids.length) {
@@ -116,6 +152,7 @@ export class OrdersService {
       lastName: order.lastName,
       userEmail: order.userEmail,
       userPhone: order.userPhone,
+      comment: order.comment,
       totalPrice: order.totalPrice.toFixed(2),
       items: order.items.map((item) => ({
         productName: item.productName,
@@ -131,6 +168,7 @@ export class OrdersService {
       id: order.id,
       status: order.status,
       totalPrice: order.totalPrice.toFixed(2),
+      comment: order.comment,
       items: order.items.map((item) => ({
         productId: item.productId,
         productName: item.productName,

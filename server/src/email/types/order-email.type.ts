@@ -14,6 +14,7 @@ export type OrderEmailPayload = {
   lastName: string;
   userEmail: string;
   userPhone: string;
+  comment?: string | null;
   /** Fixed 2-decimal money string */
   totalPrice: string;
   items: OrderEmailItem[];

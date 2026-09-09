@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isCompleteBelarusPhone } from "@/lib/belarus-phone";
 
 export const checkoutFormSchema = z.object({
   firstName: z
@@ -20,8 +21,14 @@ export const checkoutFormSchema = z.object({
   userPhone: z
     .string()
     .trim()
-    .min(5, "Телефон слишком короткий")
-    .max(32, "Телефон слишком длинный"),
+    .min(1, "Укажите телефон")
+    .refine(isCompleteBelarusPhone, {
+      message: "Введите белорусский номер в формате +375 (XX) XXX-XX-XX",
+    }),
+  comment: z
+    .string()
+    .max(1000, "Комментарий слишком длинный")
+    .optional(),
   consent: z.boolean().refine((value) => value === true, {
     message: "Нужно согласие на обработку персональных данных",
   }),

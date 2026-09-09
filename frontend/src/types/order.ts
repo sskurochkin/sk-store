@@ -8,6 +8,7 @@ export type CreateOrderPayload = {
   lastName: string;
   userEmail: string;
   userPhone: string;
+  comment?: string;
   items: CreateOrderItemPayload[];
 };
 
@@ -23,5 +24,6 @@ export type OrderResponse = {
   id: string;
   status: "NEW" | "PROCESSING" | "COMPLETED" | "CANCELLED";
   totalPrice: string;
+  comment?: string | null;
   items: OrderItemResponse[];
 };
