@@ -145,7 +145,7 @@ HTTP-only JWT cookie (`access_token`)
 - Browser helpers use same-origin `/api/...` (empty base URL in the browser)
 - Server Components still call Nest origin for public data; authenticated server checks forward `Cookie`
 - `middleware` protects `/admin/*` (except login) via Nest `GET /api/auth/me`
-- Routes: `/admin/login` (public), `/admin` dashboard + shell; Products + News + Orders + Contact Requests live; Settings marked coming soon
+- Routes: `/admin/login` (public), `/admin` dashboard + shell; Products + News + Orders + Contact Requests + Settings live
 - JWT never in localStorage / sessionStorage / URL / rendered HTML
 
 ### Admin Products (Phase 18)
@@ -178,6 +178,14 @@ HTTP-only JWT cookie (`access_token`)
 - Admin responses include PII + `message` + `consent` + timestamps; admin may hard-delete a request (no automatic purge)
 - Frontend: `/admin/contact-requests`, `/admin/contact-requests/[id]`; status select + modal delete; labels in `constants/contact-request-status.ts`
 - List table: client-side sort (дата / клиент / статус) + pagination (`ADMIN_TABLE_PAGE_SIZE`)
+
+### Admin Settings (Phase 22)
+
+- Nest Socials API unchanged (Phase 7): public `GET /socials`; JWT `POST` / `PATCH` / `DELETE`
+- Frontend hub: `/admin/settings` (extensible); socials CRUD at `/admin/settings/socials/new` and `/admin/settings/socials/[id]/edit`
+- `frontend/src/services/admin-socials.ts` — list (`cache: "no-store"`), create, update, delete
+- Form: RHF + Zod (`admin-social-schema`); fields `name`, `link` (http/https), `icon` (string key/URL — no binary upload)
+- Public footer/contacts still use `getSocials()` ISR ~60s until Phase 23 revalidation
 
 ### Admin list UX (shared)
 

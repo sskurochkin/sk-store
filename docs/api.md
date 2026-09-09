@@ -94,7 +94,7 @@ Create/update body fields:
 
 Errors: `400` validation, `401` unauthenticated write, `404` missing social.
 
-There is no separate Settings module in MVP — social networks are the initial settings scope.
+There is no separate Settings module in MVP — social networks are the initial settings scope. Admin UI: `/admin/settings` (list) and `/admin/settings/socials/new` | `/admin/settings/socials/:id/edit`.
 
 ### Orders
 
