@@ -10,6 +10,7 @@ import { MediaImage } from "@/components/ui/MediaImage/MediaImage";
 import { Section } from "@/components/ui/Section/Section";
 import { Text } from "@/components/ui/Text/Text";
 import { formatDisplayDate } from "@/lib/format-date";
+import { buildPageMetadata } from "@/lib/seo";
 import {
   getNewsByAlias,
   getNewsList,
@@ -31,10 +32,12 @@ export async function generateMetadata({
     return { title: "Новость не найдена" };
   }
 
-  return {
+  return buildPageMetadata({
     title: news.title,
     description: news.description,
-  };
+    path: `/news/${news.alias}`,
+    image: news.mainPhoto,
+  });
 }
 
 export default async function NewsDetailPage({ params }: NewsDetailPageProps) {

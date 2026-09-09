@@ -1,5 +1,9 @@
 export const SITE_NAME = "SK Store";
 
+/** Default public site description (home / root metadata). */
+export const SITE_DESCRIPTION =
+  "Свежая выпечка к вашему столу — каталог и заказ онлайн.";
+
 /**
  * NestJS origin for server-side fetches (RSC / SSG / middleware auth checks).
  * Browser requests must use same-origin `/api/...` (see `getApiBaseUrl`).
@@ -20,4 +24,14 @@ export function getApiBaseUrl(): string {
     return "";
   }
   return NEST_API_ORIGIN;
+}
+
+/**
+ * Public site origin for metadataBase / absolute OG URLs.
+ * Set `NEXT_PUBLIC_SITE_URL` in production (no trailing slash).
+ */
+export function getSiteUrl(): string {
+  const raw =
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() || "http://localhost:3000";
+  return raw.replace(/\/$/, "");
 }

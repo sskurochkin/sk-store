@@ -8,6 +8,7 @@ import { Heading } from "@/components/ui/Heading/Heading";
 import { Section } from "@/components/ui/Section/Section";
 import { Text } from "@/components/ui/Text/Text";
 import { formatPrice } from "@/lib/format-price";
+import { buildPageMetadata } from "@/lib/seo";
 import { getProductByAlias } from "@/services/products";
 import styles from "./page.module.css";
 
@@ -25,10 +26,12 @@ export async function generateMetadata({
     return { title: "Товар не найден" };
   }
 
-  return {
+  return buildPageMetadata({
     title: product.name,
     description: product.description,
-  };
+    path: `/products/${product.alias}`,
+    image: product.mainPhoto,
+  });
 }
 
 export default async function ProductDetailPage({

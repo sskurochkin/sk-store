@@ -202,6 +202,16 @@ After successful admin create/update/delete, client forms call authenticated Ser
 - Orders / contact-requests: no public cache tags
 - ISR `revalidate: 60` remains a fallback if a tag is missed
 
+### SEO / Performance (Phase 24)
+
+- `NEXT_PUBLIC_SITE_URL` → `getSiteUrl()` → root `metadataBase` ([`constants/site.ts`](../frontend/src/constants/site.ts))
+- Shared helper [`lib/seo.ts`](../frontend/src/lib/seo.ts) `buildPageMetadata` — title, description, `alternates.canonical`, Open Graph, Twitter
+- Public pages under `app/(shop)/`: home, products, news, contacts, cart, product/news detail
+- Product/news detail: OG image from `mainPhoto` only when it is an absolute `http(s)` URL
+- `/cart` and `/admin/*`: `robots: { index: false, follow: false }`
+- Images: `MediaImage` → `next/image`; `remotePatterns` include `example.com` plus optional `NEXT_PUBLIC_IMAGE_REMOTE_HOSTS`
+- Performance: public catalog/news/socials via RSC + ISR tags (Phase 23); cart/checkout client only where needed; no sitemap/robots.txt/JSON-LD yet (Future §17)
+
 ### Admin list UX (shared)
 
 - Delete actions use accessible `ConfirmModal` (not `window.confirm`)

@@ -1,10 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container/Container";
 import { Heading } from "@/components/ui/Heading/Heading";
 import { Section } from "@/components/ui/Section/Section";
 import { Text } from "@/components/ui/Text/Text";
-import { SITE_NAME } from "@/constants/site";
+import { SITE_DESCRIPTION, SITE_NAME } from "@/constants/site";
+import { buildPageMetadata } from "@/lib/seo";
 import styles from "./page.module.css";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: SITE_NAME,
+  description: SITE_DESCRIPTION,
+  path: "/",
+  absoluteTitle: true,
+});
 
 export default function Home() {
   return (

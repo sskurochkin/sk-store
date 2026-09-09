@@ -8,13 +8,15 @@ import { Heading } from "@/components/ui/Heading/Heading";
 import { Section } from "@/components/ui/Section/Section";
 import { Text } from "@/components/ui/Text/Text";
 import { SITE_NAME } from "@/constants/site";
+import { buildPageMetadata } from "@/lib/seo";
 import { getSocials } from "@/services/socials";
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Контакты",
   description: `Свяжитесь с ${SITE_NAME}: форма заявки и социальные сети`,
-};
+  path: "/contacts",
+});
 
 export default async function ContactsPage() {
   const socials = await getSocials();

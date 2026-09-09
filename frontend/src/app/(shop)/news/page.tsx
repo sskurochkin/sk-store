@@ -9,14 +9,16 @@ import {
 import { Heading } from "@/components/ui/Heading/Heading";
 import { Section } from "@/components/ui/Section/Section";
 import { Text } from "@/components/ui/Text/Text";
+import { buildPageMetadata } from "@/lib/seo";
 import { getNewsList } from "@/services/news";
 import type { News } from "@/types/news";
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Новости",
   description: "Новости и объявления пекарни SK Store",
-};
+  path: "/news",
+});
 
 export default async function NewsPage() {
   let newsItems: News[] = [];

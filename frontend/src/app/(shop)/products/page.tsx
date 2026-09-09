@@ -6,14 +6,16 @@ import { EmptyState, ErrorState } from "@/components/ui/FeedbackState/FeedbackSt
 import { Heading } from "@/components/ui/Heading/Heading";
 import { Section } from "@/components/ui/Section/Section";
 import { Text } from "@/components/ui/Text/Text";
+import { buildPageMetadata } from "@/lib/seo";
 import { getProducts } from "@/services/products";
 import type { Product } from "@/types/product";
 import styles from "./page.module.css";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Продукты",
-  description: "Каталог выпечки SK Store",
-};
+  description: "Каталог свежей выпечки SK Store",
+  path: "/products",
+});
 
 export default async function ProductsPage() {
   let products: Product[] = [];
