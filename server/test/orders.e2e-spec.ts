@@ -462,4 +462,80 @@ describe('Orders (e2e)', () => {
     });
     expect(persisted).not.toBeNull();
   });
+
+  it('GET /orders without cookie returns 401', async () => {
+    await request(app.getHttpServer()).get(`${prefix}/orders`).expect(401);
+  });
+
+  it('admin can list, get, update status, and delete an order', async () => {
+    const product = await createProduct({
+      alias: `admin-order-${Date.now()}`,
+      price: 5,
+    });
+
+    const created = trackOrder(
+      (
+        await request(app.getHttpServer())
+          .post(`${prefix}/orders`)
+          .send({
+            firstName: 'Anna',
+            lastName: 'Ivanova',
+            userEmail: 'anna@example.com',
+            userPhone: '+375291111111',
+            items: [{ productId: product.id, quantity: 1 }],
+          })
+          .expect(201)
+      ).body as OrderBody,
+    );
+
+    expect(created).not.toHaveProperty('firstName');
+
+    const agent = await loginAgent();
+
+    const list = await agent.get(`${prefix}/orders`).expect(200);
+    expect(Array.isArray(list.body)).toBe(true);
+    const listed = (list.body as Array<{ id: string; firstName: string }>).find(
+      (row) => row.id === created.id,
+    );
+    expect(listed).toMatchObject({
+      id: created.id,
+      firstName: 'Anna',
+      userEmail: 'anna@example.com',
+    });
+    expect(listed).not.toHaveProperty('items');
+
+    const detail = await agent
+      .get(`${prefix}/orders/${created.id}`)
+      .expect(200);
+    expect(detail.body).toMatchObject({
+      id: created.id,
+      firstName: 'Anna',
+      lastName: 'Ivanova',
+      userPhone: '+375291111111',
+      status: 'NEW',
+    });
+    expect(Array.isArray((detail.body as { items: unknown[] }).items)).toBe(
+      true,
+    );
+
+    const patched = await agent
+      .patch(`${prefix}/orders/${created.id}/status`)
+      .send({ status: OrderStatus.PROCESSING })
+      .expect(200);
+    expect(patched.body).toMatchObject({
+      id: created.id,
+      status: 'PROCESSING',
+      firstName: 'Anna',
+    });
+
+    await agent.delete(`${prefix}/orders/${created.id}`).expect(204);
+    createdOrderIds.splice(createdOrderIds.indexOf(created.id), 1);
+
+    await agent.get(`${prefix}/orders/${created.id}`).expect(404);
+  });
+
+  it('GET /orders/:id unknown returns 404 for admin', async () => {
+    const agent = await loginAgent();
+    await agent.get(`${prefix}/orders/does-not-exist-999`).expect(404);
+  });
 });

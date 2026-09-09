@@ -12,6 +12,8 @@ export type CreateOrderPayload = {
   items: CreateOrderItemPayload[];
 };
 
+export type OrderStatus = "NEW" | "PROCESSING" | "COMPLETED" | "CANCELLED";
+
 export type OrderItemResponse = {
   productId: string | null;
   productName: string;
@@ -20,10 +22,28 @@ export type OrderItemResponse = {
   totalPrice: string;
 };
 
+/** Public create-order response (no customer PII). */
 export type OrderResponse = {
   id: string;
-  status: "NEW" | "PROCESSING" | "COMPLETED" | "CANCELLED";
+  status: OrderStatus;
   totalPrice: string;
   comment?: string | null;
+  items: OrderItemResponse[];
+};
+
+export type AdminOrderListItem = {
+  id: string;
+  status: OrderStatus;
+  totalPrice: string;
+  comment: string | null;
+  firstName: string;
+  lastName: string;
+  userEmail: string;
+  userPhone: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminOrder = AdminOrderListItem & {
   items: OrderItemResponse[];
 };

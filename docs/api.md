@@ -156,6 +156,19 @@ Snapshot semantics: `OrderItem` stores `productName`, `price`, `quantity`, `tota
 
 Errors: `400` validation / duplicate product IDs, `404` product not found, `429` when login-configured throttler limits are hit on this route, `500` unexpected.
 
+Admin (HTTP-only auth cookie required):
+
+- `GET /api/orders` — list orders (`createdAt` desc). Includes customer PII; **does not** include `items`.
+- `GET /api/orders/:id` — order detail with customer PII + `items` snapshots; `404` if missing
+- `PATCH /api/orders/:id/status` — body `{ "status": "NEW" | "PROCESSING" | "COMPLETED" | "CANCELLED" }`; returns full admin detail
+- `DELETE /api/orders/:id` — hard delete (`204`); order items cascade
+
+Admin list/detail fields (in addition to public create fields): `firstName`, `lastName`, `userEmail`, `userPhone`, `createdAt`, `updatedAt`. Detail also includes `items`.
+
+> Public `POST /api/orders` response still **omits** customer PII. Admin endpoints are the only place that return contact fields.
+
+Errors (admin): `400` validation, `401` unauthenticated, `404` missing order.
+
 ### Contact requests
 
 Public (no authentication):

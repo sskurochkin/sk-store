@@ -9,7 +9,13 @@ describe('OrdersService', () => {
   let service: OrdersService;
   let prisma: {
     product: { findMany: jest.Mock };
-    order: { create: jest.Mock; findMany: jest.Mock };
+    order: {
+      create: jest.Mock;
+      findMany: jest.Mock;
+      findUnique: jest.Mock;
+      update: jest.Mock;
+      delete: jest.Mock;
+    };
     $executeRawUnsafe: jest.Mock;
     $transaction: jest.Mock;
   };
@@ -70,7 +76,13 @@ describe('OrdersService', () => {
   beforeEach(async () => {
     prisma = {
       product: { findMany: jest.fn() },
-      order: { create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
+      order: {
+        create: jest.fn(),
+        findMany: jest.fn().mockResolvedValue([]),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
       $executeRawUnsafe: jest.fn().mockResolvedValue(undefined),
       $transaction: jest.fn(),
     };
@@ -136,6 +148,102 @@ describe('OrdersService', () => {
     expect(result.id).toBe('20260909-1');
     expect(result.totalPrice).toBe('9.00');
     expect(result.comment).toBeNull();
+    expect(result).not.toHaveProperty('firstName');
+    expect(result).not.toHaveProperty('userEmail');
+  });
+
+  it('lists orders for admin without items, newest first mapping', async () => {
+    prisma.order.findMany.mockResolvedValue([
+      { ...createdOrder, id: 'newer', createdAt: new Date('2026-09-09') },
+      { ...createdOrder, id: 'older', createdAt: new Date('2026-09-08') },
+    ]);
+
+    const result = await service.findAllAdmin();
+
+    expect(prisma.order.findMany).toHaveBeenCalledWith({
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(result).toHaveLength(2);
+    expect(result[0]).toMatchObject({
+      id: 'newer',
+      firstName: 'John',
+      userEmail: 'john@example.com',
+      totalPrice: '9.00',
+    });
+    expect(result[0]).not.toHaveProperty('items');
+  });
+
+  it('returns admin detail with items', async () => {
+    prisma.order.findUnique.mockResolvedValue(createdOrder);
+
+    const result = await service.findOneAdmin('20260909-1');
+
+    expect(result.firstName).toBe('John');
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].productName).toBe('Croissant');
+  });
+
+  it('throws NotFoundException for missing admin detail', async () => {
+    prisma.order.findUnique.mockResolvedValue(null);
+
+    await expect(service.findOneAdmin('missing')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
+
+  it('updates order status for admin', async () => {
+    prisma.order.update.mockResolvedValue({
+      ...createdOrder,
+      status: OrderStatus.PROCESSING,
+    });
+
+    const result = await service.updateStatus(
+      '20260909-1',
+      OrderStatus.PROCESSING,
+    );
+
+    expect(prisma.order.update).toHaveBeenCalledWith({
+      where: { id: '20260909-1' },
+      data: { status: OrderStatus.PROCESSING },
+      include: { items: true },
+    });
+    expect(result.status).toBe('PROCESSING');
+    expect(result.firstName).toBe('John');
+  });
+
+  it('throws NotFoundException when updating missing order', async () => {
+    prisma.order.update.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('Record not found', {
+        code: 'P2025',
+        clientVersion: 'test',
+      }),
+    );
+
+    await expect(
+      service.updateStatus('missing', OrderStatus.CANCELLED),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('removes an order', async () => {
+    prisma.order.delete.mockResolvedValue(createdOrder);
+
+    await expect(service.remove('20260909-1')).resolves.toBeUndefined();
+    expect(prisma.order.delete).toHaveBeenCalledWith({
+      where: { id: '20260909-1' },
+    });
+  });
+
+  it('throws NotFoundException when deleting missing order', async () => {
+    prisma.order.delete.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('Record not found', {
+        code: 'P2025',
+        clientVersion: 'test',
+      }),
+    );
+
+    await expect(service.remove('missing')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 
   it('persists optional comment', async () => {

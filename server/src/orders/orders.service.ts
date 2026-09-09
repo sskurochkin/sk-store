@@ -20,7 +20,14 @@ import {
   nextDailyOrderId,
   ORDER_ID_ADVISORY_LOCK_KEY1,
 } from './order-id';
-import type { OrderResponse } from './types/order-response.type';
+import type {
+  AdminOrderListItem,
+  AdminOrderResponse,
+} from './types/admin-order-response.type';
+import type {
+  OrderItemResponse,
+  OrderResponse,
+} from './types/order-response.type';
 
 type TransactionClient = Omit<
   PrismaClient,
@@ -111,7 +118,64 @@ export class OrdersService {
       );
     }
 
-    return this.toResponse(order);
+    return this.toPublicResponse(order);
+  }
+
+  async findAllAdmin(): Promise<AdminOrderListItem[]> {
+    const orders = await this.prisma.order.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return orders.map((order) => this.toAdminListItem(order));
+  }
+
+  async findOneAdmin(id: string): Promise<AdminOrderResponse> {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: { items: true },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return this.toAdminResponse(order);
+  }
+
+  async updateStatus(
+    id: string,
+    status: OrderStatus,
+  ): Promise<AdminOrderResponse> {
+    try {
+      const order = await this.prisma.order.update({
+        where: { id },
+        data: { status },
+        include: { items: true },
+      });
+      return this.toAdminResponse(order);
+    } catch (error: unknown) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Order not found');
+      }
+      throw error;
+    }
+  }
+
+  async remove(id: string): Promise<void> {
+    try {
+      await this.prisma.order.delete({ where: { id } });
+    } catch (error: unknown) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Order not found');
+      }
+      throw error;
+    }
   }
 
   private async allocateDailyOrderId(tx: TransactionClient): Promise<string> {
@@ -163,19 +227,46 @@ export class OrdersService {
     };
   }
 
-  private toResponse(order: OrderWithItems): OrderResponse {
+  /** Public create response — no customer PII. */
+  private toPublicResponse(order: OrderWithItems): OrderResponse {
     return {
       id: order.id,
       status: order.status,
       totalPrice: order.totalPrice.toFixed(2),
       comment: order.comment,
-      items: order.items.map((item) => ({
-        productId: item.productId,
-        productName: item.productName,
-        price: item.price.toFixed(2),
-        quantity: item.quantity,
-        totalPrice: item.totalPrice.toFixed(2),
-      })),
+      items: order.items.map((item) => this.toItemResponse(item)),
+    };
+  }
+
+  private toAdminListItem(order: Order): AdminOrderListItem {
+    return {
+      id: order.id,
+      status: order.status,
+      totalPrice: order.totalPrice.toFixed(2),
+      comment: order.comment,
+      firstName: order.firstName,
+      lastName: order.lastName,
+      userEmail: order.userEmail,
+      userPhone: order.userPhone,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    };
+  }
+
+  private toAdminResponse(order: OrderWithItems): AdminOrderResponse {
+    return {
+      ...this.toAdminListItem(order),
+      items: order.items.map((item) => this.toItemResponse(item)),
+    };
+  }
+
+  private toItemResponse(item: OrderItem): OrderItemResponse {
+    return {
+      productId: item.productId,
+      productName: item.productName,
+      price: item.price.toFixed(2),
+      quantity: item.quantity,
+      totalPrice: item.totalPrice.toFixed(2),
     };
   }
 }
