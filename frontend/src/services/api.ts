@@ -91,16 +91,47 @@ export async function apiPost<T>(
   body: unknown,
   options: FetchOptions = {},
 ): Promise<T> {
+  return apiMutate<T>("POST", path, body, options);
+}
+
+/**
+ * JSON PATCH helper (admin mutations).
+ */
+export async function apiPatch<T>(
+  path: string,
+  body: unknown,
+  options: FetchOptions = {},
+): Promise<T> {
+  return apiMutate<T>("PATCH", path, body, options);
+}
+
+/**
+ * DELETE helper (admin mutations). Expects 204 with empty body.
+ */
+export async function apiDelete(
+  path: string,
+  options: FetchOptions = {},
+): Promise<void> {
+  await apiMutate<undefined>("DELETE", path, undefined, options);
+}
+
+async function apiMutate<T>(
+  method: "POST" | "PATCH" | "DELETE",
+  path: string,
+  body: unknown | undefined,
+  options: FetchOptions,
+): Promise<T> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+  if (body !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
+
   const response = await fetch(buildUrl(path), {
-    method: "POST",
-    headers: buildHeaders(
-      {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      options.cookie,
-    ),
-    body: JSON.stringify(body),
+    method,
+    headers: buildHeaders(headers, options.cookie),
+    body: body === undefined ? undefined : JSON.stringify(body),
     cache: "no-store",
     credentials: options.credentials ?? "same-origin",
   });
