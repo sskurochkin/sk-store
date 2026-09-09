@@ -11,13 +11,15 @@ The public site allows visitors to:
 - change quantities and remove items;
 - submit an order without online payment;
 - read news;
-- view contacts and social networks.
+- view contacts and social networks;
+- submit a contact request form on `/contacts`.
 
 The admin area allows the administrator to:
 - log in;
 - manage products;
 - manage news;
 - manage orders and their statuses;
+- manage contact requests and their statuses;
 - manage social networks/settings;
 - prepare a foundation for future statistics.
 
@@ -94,6 +96,7 @@ server/
 │   ├── products/
 │   ├── news/
 │   ├── orders/
+│   ├── contact-requests/
 │   ├── socials/
 │   ├── email/
 │   ├── prisma/
@@ -297,6 +300,40 @@ Social
 - icon
 ```
 
+### ContactRequest
+
+Public contact form submissions are stored as a separate resource (not linked to Admin/User accounts).
+
+```text
+ContactRequest
+- id
+- firstName
+- lastName
+- phone
+- email
+- message
+- consent
+- status
+- createdAt
+- updatedAt
+```
+
+`consent` must be `true` on create and is stored for audit. Phone uses Belarus format `+375XXXXXXXXX` (same as checkout).
+Status enum:
+
+```text
+NEW
+IN_PROGRESS
+COMPLETED
+CANCELLED
+```
+
+Rules:
+- public `POST` creates a request with status always `NEW` (client cannot set status);
+- records are retained (no automatic deletion);
+- admin list / detail / status change is a later Admin phase;
+- do not log full email, phone, or message in ordinary application logs.
+
 ---
 
 ## 6. Order Rules
@@ -375,7 +412,8 @@ Validate at minimum:
 - prices/IDs from trusted database state;
 - aliases;
 - admin credentials;
-- order payloads.
+- order payloads;
+- contact request payloads (name, phone, email, message length).
 
 ---
 
@@ -485,6 +523,7 @@ After successful login:
 - Products
 - News
 - Orders
+- Contact Requests (`/admin/contact-requests`)
 - Statistics
 
 ### Settings
@@ -529,6 +568,22 @@ Admin can:
 - change status;
 - delete orders.
 
+### Contact Requests
+
+Admin can (separate Admin UI phase — not part of the public Contacts foundation):
+- view contact request list;
+- open a single request;
+- change status (`NEW` → `IN_PROGRESS` → `COMPLETED`, or `CANCELLED`);
+- retain history (no automatic purge).
+
+Planned admin API (JWT cookie required; same path convention as other admin resources):
+
+```text
+GET    /contact-requests
+GET    /contact-requests/:id
+PATCH  /contact-requests/:id/status
+```
+
 ### Statistics
 
 MVP foundation only.
@@ -564,11 +619,19 @@ GET    /orders/:id
 PATCH  /orders/:id/status
 DELETE /orders/:id
 
+POST   /contact-requests
+GET    /contact-requests
+GET    /contact-requests/:id
+PATCH  /contact-requests/:id/status
+
 GET    /socials
 POST   /socials
 PATCH  /socials/:id
 DELETE /socials/:id
 ```
+
+`POST /contact-requests` is public (no JWT), rate-limited, and always creates `status: NEW`.
+Admin contact-request read/status endpoints require JWT and belong to a later Admin phase.
 
 Protected endpoints must be explicitly guarded.
 
@@ -775,46 +838,65 @@ Before MVP completion verify:
 - news detail;
 - sanitized content rendering.
 
-### Phase 16 — Contacts
+### Phase 16 — Contacts + Contact Requests
 - contacts page;
-- social links.
+- social links;
+- `ContactRequest` model + migration;
+- public `POST /api/contact-requests` (validation, throttling, status always `NEW`);
+- public contact request form on `/contacts`;
+- **Admin Contact Requests UI/API is deferred** to Admin phases.
 
-### Phase 17 — Admin UI
+### Phase 17 — Admin UI foundation
 - login;
-- dashboard;
-- products;
-- news;
-- orders;
-- settings.
+- dashboard shell;
+- navigation.
 
-### Phase 18 — Cache Revalidation
+### Phase 18 — Admin Products
+- product CRUD UI.
+
+### Phase 19 — Admin News
+- news CRUD UI.
+
+### Phase 20 — Admin Orders
+- order list / detail / status.
+
+### Phase 21 — Admin Contact Requests
+- contact request list;
+- contact request detail;
+- status changes via authenticated API.
+
+### Phase 22 — Admin Settings
+- socials / settings UI.
+
+### Phase 23 — Cache Revalidation
 - tags;
 - mutation invalidation;
 - stale-data checks.
 
-### Phase 19 — SEO/Performance
+### Phase 24 — SEO/Performance
 - metadata;
 - Open Graph;
 - canonical;
 - image optimization;
 - performance review.
 
-### Phase 20 — Security Review
+### Phase 25 — Security Review
 - auth;
 - validation;
 - cookies;
 - CORS;
 - rate limiting;
 - HTML;
-- secrets.
+- secrets;
+- contact form abuse controls.
 
-### Phase 21 — Testing
+### Phase 26 — Testing
 - unit tests;
 - integration tests;
 - API tests;
 - critical E2E flows.
 
-### Phase 22 — Production Readiness
+### Phase 27 — Production Readiness
 - environment variables;
 - migrations;
 - seed strategy;
@@ -845,18 +927,19 @@ Before MVP completion verify:
 16. Cart
 17. Checkout
 18. News UI
-19. Contacts
+19. Contacts + Contact Requests (public form + API)
 20. Admin layout
 21. Admin Products
 22. Admin News
 23. Admin Orders
-24. Admin Settings
-25. Statistics foundation
-26. Cache revalidation
-27. SEO
-28. Security review
-29. Tests
-30. Production readiness
+24. Admin Contact Requests
+25. Admin Settings
+26. Statistics foundation
+27. Cache revalidation
+28. SEO
+29. Security review
+30. Tests
+31. Production readiness
 ```
 
 ---
@@ -882,8 +965,10 @@ Before MVP completion verify:
 - product CRUD works;
 - news CRUD works;
 - order creation works;
+- contact request creation works;
 - email flow works;
 - cart persists correctly;
+- admin can manage contact requests;
 - cache revalidation works;
 - critical E2E scenarios pass.
 
@@ -897,12 +982,14 @@ MVP is complete when:
 - products can be browsed and added to cart;
 - cart quantity/removal works;
 - checkout creates orders;
+- visitors can submit contact requests from `/contacts`;
 - order totals are calculated on the backend;
 - customer receives an order email;
 - admin can log in securely;
 - admin can manage products;
 - admin can manage news;
 - admin can manage orders;
+- admin can manage contact requests and statuses;
 - admin can manage socials/settings;
 - cache invalidation prevents stale admin-managed content;
 - basic SEO is implemented;

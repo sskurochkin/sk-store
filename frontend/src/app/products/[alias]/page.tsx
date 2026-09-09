@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductPurchaseControls } from "@/components/product/ProductPurchaseControls";
 import { Container } from "@/components/ui/Container/Container";
@@ -47,6 +48,12 @@ export default async function ProductDetailPage({
       aria-labelledby="product-heading"
     >
       <Container>
+        <Breadcrumbs
+          items={[
+            { label: "Продукты", href: "/products" },
+            { label: product.name },
+          ]}
+        />
         <div className={styles.layout}>
           <ProductGallery
             name={product.name}

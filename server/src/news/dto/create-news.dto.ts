@@ -1,4 +1,12 @@
-import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 /** Same lowercase kebab-case slug as products. */
 export const NEWS_ALIAS_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -32,4 +40,12 @@ export class CreateNewsDto {
   @MinLength(1)
   @MaxLength(100_000)
   content!: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  @MinLength(1, { each: true })
+  @MaxLength(40, { each: true })
+  tags?: string[];
 }

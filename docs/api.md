@@ -62,6 +62,7 @@ Create/update body fields:
 | `description` | plain text string |
 | `mainPhoto` | non-empty string (URL / storage reference) |
 | `content` | HTML string; sanitized on write before persistence |
+| `tags` | optional `string[]` (max 20); each tag 1–40 chars; empty/duplicates trimmed out |
 
 HTML sanitization (`sanitize-html`) allowlist:
 
@@ -154,6 +155,50 @@ Order ids are human-readable: `YYYYMMDD-N` in the Europe/Minsk calendar (example
 Snapshot semantics: `OrderItem` stores `productName`, `price`, `quantity`, `totalPrice` at order time. Later product edits do not change historical items. If a product is deleted, `OrderItem.productId` becomes `null` (`onDelete: SetNull`) while snapshot fields remain.
 
 Errors: `400` validation / duplicate product IDs, `404` product not found, `429` when login-configured throttler limits are hit on this route, `500` unexpected.
+
+### Contact requests
+
+Public (no authentication):
+
+- `POST /api/contact-requests` — create contact request (`201`)
+
+The client may send only contact fields. The server:
+
+1. validates the payload;
+2. rejects unknown fields including `status`, `id`, `createdAt`, `updatedAt` (`forbidNonWhitelisted`);
+3. creates a `ContactRequest` with `status` always `NEW`;
+4. returns a minimal safe payload.
+
+Request body:
+
+| Field | Rules |
+| --- | --- |
+| `firstName` | required string, trimmed, 1–100 |
+| `lastName` | required string, trimmed, 1–100 |
+| `phone` | required Belarus phone `+375XXXXXXXXX` |
+| `email` | required email, trimmed, max 255 |
+| `message` | required string, trimmed, 10–5000 |
+| `consent` | required boolean, must be `true` (stored on the record) |
+
+Response:
+
+```json
+{
+  "id": "...",
+  "status": "NEW",
+  "createdAt": "2026-09-09T08:00:00.000Z"
+}
+```
+
+Errors: `400` validation, `429` throttled (same Nest `ThrottlerGuard` / auth rate config as other public write routes), `500` unexpected.
+
+Do not log full email, phone, or message. No email notification for contact requests in this phase.
+
+Planned admin endpoints (JWT cookie; later Admin Contact Requests phase):
+
+- `GET /api/contact-requests`
+- `GET /api/contact-requests/:id`
+- `PATCH /api/contact-requests/:id/status`
 
 ### Order email behavior
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Container } from "@/components/ui/Container/Container";
 import { EmptyState, ErrorState } from "@/components/ui/FeedbackState/FeedbackState";
@@ -27,6 +28,7 @@ export default async function ProductsPage() {
   return (
     <Section spacing="lg" className={styles.section} aria-labelledby="products-heading">
       <Container>
+        <Breadcrumbs items={[{ label: "Продукты" }]} />
         <header className={styles.header}>
           <Heading id="products-heading" level={1}>
             Продукты

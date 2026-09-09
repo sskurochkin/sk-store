@@ -11,6 +11,7 @@ type NewsBody = {
   description: string;
   mainPhoto: string;
   content: string;
+  tags: string[];
 };
 
 const validNews = {
@@ -19,6 +20,7 @@ const validNews = {
   description: 'Updated bakery hours for the weekend.',
   mainPhoto: 'https://example.com/weekend.jpg',
   content: '<p>We open at <strong>9:00</strong>.</p>',
+  tags: ['часы работы'],
 };
 
 describe('News (e2e)', () => {

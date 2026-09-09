@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CartPageContent } from "@/components/cart/CartPageContent";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { Container } from "@/components/ui/Container/Container";
 import { Section } from "@/components/ui/Section/Section";
 import styles from "./page.module.css";
@@ -17,6 +18,7 @@ export default function CartPage() {
       aria-labelledby="cart-heading"
     >
       <Container>
+        <Breadcrumbs items={[{ label: "Корзина" }]} />
         <CartPageContent />
       </Container>
     </Section>

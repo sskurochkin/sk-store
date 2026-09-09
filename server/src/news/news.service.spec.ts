@@ -23,6 +23,7 @@ describe('NewsService', () => {
     description: 'Seasonal bakes',
     mainPhoto: 'https://example.com/news.jpg',
     content: '<p>Fresh <strong>loaves</strong></p>',
+    tags: ['осень', 'завтрак'],
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-02T00:00:00.000Z'),
   };
@@ -85,6 +86,7 @@ describe('NewsService', () => {
           description: string;
           mainPhoto: string;
           content: string;
+          tags: string[];
         };
       },
     ];
@@ -94,8 +96,27 @@ describe('NewsService', () => {
     expect(data.alias).toBe('autumn-special');
     expect(data.description).toBe('Seasonal bakes');
     expect(data.mainPhoto).toBe('https://example.com/news.jpg');
+    expect(data.tags).toEqual([]);
     expect(data.content).toContain('<p>Hi</p>');
     expect(data.content).not.toMatch(/script/i);
+  });
+
+  it('create normalizes tags', async () => {
+    prisma.news.create.mockResolvedValue(sampleNews);
+
+    await service.create({
+      title: 'Autumn Special',
+      alias: 'autumn-special',
+      description: 'Seasonal bakes',
+      mainPhoto: 'https://example.com/news.jpg',
+      content: '<p>Hi</p>',
+      tags: ['  Осень ', 'завтрак', 'осень', ''],
+    });
+
+    const createCall = prisma.news.create.mock.calls[0] as [
+      { data: { tags: string[] } },
+    ];
+    expect(createCall[0].data.tags).toEqual(['Осень', 'завтрак']);
   });
 
   it('create maps unique alias conflict to ConflictException', async () => {

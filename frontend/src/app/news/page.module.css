@@ -1,0 +1,28 @@
+.section {
+  padding-block: var(--space-10);
+}
+
+.header {
+  margin-bottom: var(--space-8);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: 1fr;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 40rem) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 60rem) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

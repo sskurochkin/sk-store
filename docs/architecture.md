@@ -21,6 +21,7 @@ SK Store is split into two applications:
 - `news` — public news read + admin news CRUD with HTML sanitization on write (Phase 6)
 - `socials` — public social list (MVP settings retrieval) + admin CRUD (Phase 7)
 - `orders` — public `POST /api/orders` with server-side pricing, Decimal totals, transactional Order + OrderItem snapshots (Phase 8)
+- `contact-requests` — public `POST /api/contact-requests` with validation + throttling; status always `NEW` (Phase 16); admin list/status later
 - `email` — `EmailModule` / `EmailService` with Nodemailer transport; order confirmation after successful create (Phase 9)
 
 ### Frontend public design system (Phase 10)
@@ -64,6 +65,65 @@ Responsive strategy is mobile-first with media queries at `40rem` / `60rem` / `8
 - `createOrder()` → `POST /api/orders` with `productId` + `quantity` only; prices never trusted from client
 - Success: `clearCart()` + success panel with order `id` and server `totalPrice`; errors keep the cart
 - `apiPost` in `frontend/src/services/api.ts`; UI: `Checkbox` primitive
+
+### News UI (Phase 15)
+
+- `/news` — list (RSC) via `getNewsList()`; empty → `EmptyState`, API failure → `ErrorState`
+- `/news/[alias]` — article (RSC) via `getNewsByAlias()`; unknown alias → `notFound()`
+- Cache tags: `news`, `news:alias:{alias}` (revalidate 60s)
+- `NewsCard` (Server); `NewsArticleContent` renders backend-sanitized HTML via `dangerouslySetInnerHTML` (server-fetched only)
+- Fields used: `title`, `alias`, `description`, `mainPhoto`, `content`, `createdAt`, optional `tags: string[]`
+- News detail: main column (~70%) + related-by-tag sidebar; full width when no related items
+- `Breadcrumbs` on internal pages; home crumb is an icon with `aria-label="Главная"`
+
+### Contacts (Phase 16)
+
+- `/contacts` — RSC page via existing `getSocials()` (tag `socials`, revalidate 60s)
+- Shows social links (no invented phone/email/address); empty/API failure → neutral `EmptyState`
+- Shared display helper: `components/social/SocialLinks` (plain-text `icon` + `name`, external `rel`)
+- Public **contact request form** (Client Component) → `POST /api/contact-requests`
+- Form fields: `firstName`, `lastName`, `phone` (Belarus mask → `+375…`), `email`, `message`, required `consent` (stored)
+- Page order: socials → map placeholder (future) → contact form
+- Socials fetch failure must not break the form
+
+### ContactRequest (Phase 16 foundation)
+
+Purpose: store public contact form submissions for later admin follow-up.
+
+```text
+ContactRequest
+  id, firstName, lastName, phone, email, message, consent
+  status (NEW | IN_PROGRESS | COMPLETED | CANCELLED)
+  createdAt, updatedAt
+```
+
+Lifecycle:
+
+```text
+NEW → IN_PROGRESS → COMPLETED
+         ↘ CANCELLED (from NEW or IN_PROGRESS)
+```
+
+Public API (this phase):
+
+- `POST /api/contact-requests` — no JWT; ValidationPipe; throttled (`ThrottlerGuard`); status forced to `NEW`
+- Response: `{ id, status, createdAt }` (no need to echo PII back)
+
+Planned admin API (later Admin Contact Requests phase, JWT required):
+
+- `GET /api/contact-requests`
+- `GET /api/contact-requests/:id`
+- `PATCH /api/contact-requests/:id/status`
+
+Security:
+
+- client cannot set `status` / `id` / timestamps (`forbidNonWhitelisted`)
+- do not log full email, phone, or message
+- message stored and displayed as plain text only
+- no contact-request email notification in this phase (Orders email remains separate)
+- no automatic deletion / retention purge
+
+Frontend Admin UI route (later): `/admin/contact-requests`
 
 ### Orders pricing rule
 

@@ -52,4 +52,8 @@ cd server && npm run typecheck && npm run lint && npm run build
 
 ## Phase
 
-Current focus: **Phase 1 — Infrastructure**
+Current focus: **Phase 16 — Contacts + Contact Requests** (public form + API; Admin Contact Requests UI later).
+
+Public pages include `/`, `/products`, `/news`, `/contacts` (socials + contact form), `/cart`.
+
+Public write APIs: `POST /api/orders`, `POST /api/contact-requests`.

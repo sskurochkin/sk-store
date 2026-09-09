@@ -1,0 +1,56 @@
+.section {
+  padding-block: var(--space-10);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+  max-width: 40rem;
+}
+
+.intro {
+  max-width: 36rem;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.socials,
+.mapSection,
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.subheading {
+  margin: 0;
+}
+
+.mapPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 12rem;
+  padding: var(--space-6);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-surface-muted);
+  text-align: center;
+}
+
+@media (min-width: 60rem) {
+  .mapPlaceholder {
+    min-height: 16rem;
+  }
+
+  .formSection {
+    max-width: 40rem;
+  }
+}

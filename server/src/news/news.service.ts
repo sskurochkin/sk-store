@@ -44,6 +44,7 @@ export class NewsService {
           description: dto.description,
           mainPhoto: dto.mainPhoto.trim(),
           content: sanitizeNewsHtml(dto.content),
+          tags: this.normalizeTags(dto.tags),
         },
       });
       return this.toResponse(item);
@@ -71,6 +72,9 @@ export class NewsService {
     }
     if (dto.content !== undefined) {
       data.content = sanitizeNewsHtml(dto.content);
+    }
+    if (dto.tags !== undefined) {
+      data.tags = this.normalizeTags(dto.tags);
     }
 
     try {
@@ -104,6 +108,30 @@ export class NewsService {
     return alias.trim().toLowerCase();
   }
 
+  private normalizeTags(tags: string[] | undefined): string[] {
+    if (!tags || tags.length === 0) {
+      return [];
+    }
+
+    const seen = new Set<string>();
+    const result: string[] = [];
+
+    for (const tag of tags) {
+      const trimmed = tag.trim();
+      if (trimmed.length === 0) {
+        continue;
+      }
+      const key = trimmed.toLowerCase();
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      result.push(trimmed);
+    }
+
+    return result;
+  }
+
   private toResponse(item: News): NewsResponse {
     return {
       id: item.id,
@@ -112,6 +140,7 @@ export class NewsService {
       description: item.description,
       mainPhoto: item.mainPhoto,
       content: item.content,
+      tags: item.tags,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     };

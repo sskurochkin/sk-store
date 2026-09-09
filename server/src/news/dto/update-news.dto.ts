@@ -1,4 +1,6 @@
 import {
+  ArrayMaxSize,
+  IsArray,
   IsOptional,
   IsString,
   Matches,
@@ -41,4 +43,12 @@ export class UpdateNewsDto {
   @MinLength(1)
   @MaxLength(100_000)
   content?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  @MinLength(1, { each: true })
+  @MaxLength(40, { each: true })
+  tags?: string[];
 }

@@ -37,6 +37,7 @@ const DEMO_NEWS = [
     mainPhoto: 'https://example.com/images/autumn-special.jpg',
     content:
       '<p>Our <strong>autumn menu</strong> is ready. Visit us this weekend.</p>',
+    tags: ['осень', 'завтрак', 'выпечка'],
   },
   {
     alias: 'weekend-hours',
@@ -45,6 +46,25 @@ const DEMO_NEWS = [
     mainPhoto: 'https://example.com/images/weekend-hours.jpg',
     content:
       '<p>We open at <strong>9:00</strong> on weekends. See you soon!</p>',
+    tags: ['часы работы'],
+  },
+  {
+    alias: 'hot-dog-friday',
+    title: 'Hot Dog Friday',
+    description: 'House buns and mustard for the weekend crowd.',
+    mainPhoto: 'https://example.com/images/hot-dog-friday.jpg',
+    content:
+      '<p>Try our <strong>hot dog</strong> on a soft bakery bun every Friday.</p>',
+    tags: ['хот-дог', 'завтрак'],
+  },
+  {
+    alias: 'pumpkin-loaf',
+    title: 'Pumpkin Loaf',
+    description: 'Spiced pumpkin loaf for cooler mornings.',
+    mainPhoto: 'https://example.com/images/pumpkin-loaf.jpg',
+    content:
+      '<p>Warm <em>pumpkin</em> loaf with cinnamon — perfect for autumn breakfast.</p>',
+    tags: ['осень', 'завтрак'],
   },
 ] as const;
 
@@ -114,12 +134,14 @@ async function main(): Promise<void> {
         description: news.description,
         mainPhoto: news.mainPhoto,
         content: news.content,
+        tags: [...news.tags],
       },
       update: {
         title: news.title,
         description: news.description,
         mainPhoto: news.mainPhoto,
         content: news.content,
+        tags: [...news.tags],
       },
     });
   }

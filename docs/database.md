@@ -8,10 +8,11 @@ Connection is configured via `DATABASE_URL` in `server/.env`.
 
 - `Admin` — admin credentials (`username` unique; `passwordHash` only)
 - `Product` — catalog item (`alias` unique; `gallery` as `String[]`; `price` as `Decimal(12,2)`)
-- `News` — news article (`alias` unique; `content` as text/HTML)
+- `News` — news article (`alias` unique; `content` as text/HTML; optional `tags: String[]`)
 - `Order` — customer order snapshot (`id` as `YYYYMMDD-N`; optional `comment`; `status` enum; `totalPrice` as `Decimal(12,2)`)
 - `OrderItem` — relational line items with price/name snapshots
 - `Social` — social network links
+- `ContactRequest` — public contact form submissions (`consent` boolean; `status` enum; indexes on `status`, `createdAt`)
 
 ## OrderItem integrity
 
@@ -27,6 +28,17 @@ PROCESSING
 COMPLETED
 CANCELLED
 ```
+
+## ContactRequest status
+
+```text
+NEW
+IN_PROGRESS
+COMPLETED
+CANCELLED
+```
+
+Default on create: `NEW`. Status changes are admin-only (future phase). Records are retained.
 
 ## Local commands
 
