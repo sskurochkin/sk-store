@@ -5,7 +5,9 @@ Admin authentication uses:
 - bcrypt password verification against `Admin.passwordHash`
 - JWT access token stored only in an HTTP-only cookie (`access_token` by default)
 - `JwtAuthGuard` that reads the token from the cookie (not `Authorization` / localStorage)
-- login-only rate limiting via `@nestjs/throttler`
+- Nest `@nestjs/throttler` with **named** profiles:
+  - `login` — `POST /api/auth/login` (`AUTH_LOGIN_RATE_LIMIT` / `AUTH_LOGIN_RATE_TTL_MS`)
+  - `publicWrite` — `POST /api/orders` and `POST /api/contact-requests` (`PUBLIC_WRITE_RATE_LIMIT` / `PUBLIC_WRITE_RATE_TTL_MS`)
 
 ## Endpoints
 
@@ -33,3 +35,5 @@ Browser → Next `/api/auth/*` → rewrite → Nest Auth
 - Secure: from `COOKIE_SECURE` (defaults to true in production)
 - SameSite: from `COOKIE_SAME_SITE` (default `lax`)
 - Max-Age: from `COOKIE_MAX_AGE_MS`
+
+See also [`docs/security.md`](./security.md) for the Phase 25 checklist.

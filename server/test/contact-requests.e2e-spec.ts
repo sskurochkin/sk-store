@@ -151,8 +151,8 @@ describe('ContactRequests (e2e)', () => {
   it('rate limits contact request creation', async () => {
     await app.close();
 
-    process.env.AUTH_LOGIN_RATE_LIMIT = '3';
-    process.env.AUTH_LOGIN_RATE_TTL_MS = '60000';
+    process.env.PUBLIC_WRITE_RATE_LIMIT = '3';
+    process.env.PUBLIC_WRITE_RATE_TTL_MS = '60000';
     app = await createAuthTestApp();
     prisma = app.get(PrismaService);
 
@@ -177,7 +177,7 @@ describe('ContactRequests (e2e)', () => {
       })
       .expect(429);
 
-    process.env.AUTH_LOGIN_RATE_LIMIT = '5';
+    process.env.PUBLIC_WRITE_RATE_LIMIT = '5';
   });
 
   async function loginAgent() {

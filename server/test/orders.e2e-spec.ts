@@ -538,4 +538,49 @@ describe('Orders (e2e)', () => {
     const agent = await loginAgent();
     await agent.get(`${prefix}/orders/does-not-exist-999`).expect(404);
   });
+
+  it('rate limits order creation', async () => {
+    const product = await createProduct({
+      alias: `rate-order-${Date.now()}`,
+      price: 3,
+    });
+
+    await app.close();
+
+    process.env.PUBLIC_WRITE_RATE_LIMIT = '3';
+    process.env.PUBLIC_WRITE_RATE_TTL_MS = '60000';
+    app = await createAuthTestApp([
+      { provide: EmailService, useValue: emailService },
+    ]);
+    prisma = app.get(PrismaService);
+
+    const server = app.getHttpServer();
+    const basePayload = {
+      firstName: 'Rate',
+      lastName: 'Limit',
+      userPhone: '+375291234567',
+      items: [{ productId: product.id, quantity: 1 }],
+    };
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const response = await request(server)
+        .post(`${prefix}/orders`)
+        .send({
+          ...basePayload,
+          userEmail: `rate-order-${attempt}@example.com`,
+        })
+        .expect(201);
+      trackOrder(response.body as OrderBody);
+    }
+
+    await request(server)
+      .post(`${prefix}/orders`)
+      .send({
+        ...basePayload,
+        userEmail: 'rate-order-overflow@example.com',
+      })
+      .expect(429);
+
+    process.env.PUBLIC_WRITE_RATE_LIMIT = '5';
+  });
 });

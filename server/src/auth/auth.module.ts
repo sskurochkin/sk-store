@@ -32,8 +32,18 @@ import { JwtStrategy } from './jwt.strategy';
       inject: [ConfigService],
       useFactory: (configService: ConfigService<AppConfig, true>) => [
         {
+          name: 'login',
           ttl: configService.get('auth.loginRateTtlMs', { infer: true }),
           limit: configService.get('auth.loginRateLimit', { infer: true }),
+        },
+        {
+          name: 'publicWrite',
+          ttl: configService.get('auth.publicWriteRateTtlMs', {
+            infer: true,
+          }),
+          limit: configService.get('auth.publicWriteRateLimit', {
+            infer: true,
+          }),
         },
       ],
     }),

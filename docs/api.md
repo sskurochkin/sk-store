@@ -154,7 +154,7 @@ Order ids are human-readable: `YYYYMMDD-N` in the Europe/Minsk calendar (example
 
 Snapshot semantics: `OrderItem` stores `productName`, `price`, `quantity`, `totalPrice` at order time. Later product edits do not change historical items. If a product is deleted, `OrderItem.productId` becomes `null` (`onDelete: SetNull`) while snapshot fields remain.
 
-Errors: `400` validation / duplicate product IDs, `404` product not found, `429` when login-configured throttler limits are hit on this route, `500` unexpected.
+Errors: `400` validation / duplicate product IDs, `404` product not found, `429` when public-write throttler limits are hit (`PUBLIC_WRITE_RATE_LIMIT` / `PUBLIC_WRITE_RATE_TTL_MS`), `500` unexpected.
 
 Admin (HTTP-only auth cookie required):
 
@@ -203,7 +203,7 @@ Response:
 }
 ```
 
-Errors: `400` validation, `429` throttled (same Nest `ThrottlerGuard` / auth rate config as other public write routes), `500` unexpected.
+Errors: `400` validation, `429` throttled (`PUBLIC_WRITE_RATE_LIMIT` / `PUBLIC_WRITE_RATE_TTL_MS`, shared with `POST /orders`), `500` unexpected.
 
 Do not log full email, phone, or message. No email notification for contact requests in this phase.
 

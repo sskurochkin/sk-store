@@ -212,6 +212,13 @@ After successful admin create/update/delete, client forms call authenticated Ser
 - Images: `MediaImage` → `next/image`; `remotePatterns` include `example.com` plus optional `NEXT_PUBLIC_IMAGE_REMOTE_HOSTS`
 - Performance: public catalog/news/socials via RSC + ISR tags (Phase 23); cart/checkout client only where needed; no sitemap/robots.txt/JSON-LD yet (Future §17)
 
+### Security review (Phase 25)
+
+- Controls matrix + production checklist: [`docs/security.md`](./security.md)
+- Production CORS requires explicit `CORS_ORIGIN` (no reflect-any / `*`)
+- Named throttlers: `login` vs `publicWrite` (orders + contact-requests)
+- Auth cookies remain HTTP-only; JWT never in frontend localStorage
+
 ### Admin list UX (shared)
 
 - Delete actions use accessible `ConfirmModal` (not `window.confirm`)

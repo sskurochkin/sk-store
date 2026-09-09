@@ -10,7 +10,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ContactRequestsService } from './contact-requests.service';
 import { CreateContactRequestDto } from './dto/create-contact-request.dto';
@@ -24,6 +24,7 @@ export class ContactRequestsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @SkipThrottle({ login: true })
   @UseGuards(ThrottlerGuard)
   create(@Body() dto: CreateContactRequestDto) {
     return this.contactRequestsService.create(dto);

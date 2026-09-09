@@ -19,6 +19,8 @@ export type AppConfig = {
   auth: {
     loginRateLimit: number;
     loginRateTtlMs: number;
+    publicWriteRateLimit: number;
+    publicWriteRateTtlMs: number;
   };
   email: {
     smtpHost: string | null;
@@ -132,7 +134,10 @@ export default function configuration(): AppConfig {
 
   let corsOrigin: string | boolean;
   if (corsOriginRaw === undefined || corsOriginRaw.trim().length === 0) {
-    // Reflect request origin — compatible with credentials (never "*").
+    if (nodeEnv === 'production') {
+      throw new Error('Missing required environment variable: CORS_ORIGIN');
+    }
+    // Dev/test: reflect request origin — compatible with credentials (never "*").
     corsOrigin = true;
   } else if (corsOriginRaw.trim() === '*') {
     if (credentials) {
@@ -140,9 +145,14 @@ export default function configuration(): AppConfig {
         'CORS_ORIGIN cannot be "*" when CORS_CREDENTIALS is enabled',
       );
     }
+    if (nodeEnv === 'production') {
+      throw new Error(
+        'CORS_ORIGIN cannot be "*" in production; set an explicit frontend origin',
+      );
+    }
     corsOrigin = '*';
   } else {
-    corsOrigin = corsOriginRaw;
+    corsOrigin = corsOriginRaw.trim();
   }
 
   const cookieSecure = parseBoolean(
@@ -177,6 +187,14 @@ export default function configuration(): AppConfig {
       loginRateLimit: parsePositiveInt(process.env.AUTH_LOGIN_RATE_LIMIT, 5),
       loginRateTtlMs: parsePositiveInt(
         process.env.AUTH_LOGIN_RATE_TTL_MS,
+        60_000,
+      ),
+      publicWriteRateLimit: parsePositiveInt(
+        process.env.PUBLIC_WRITE_RATE_LIMIT,
+        5,
+      ),
+      publicWriteRateTtlMs: parsePositiveInt(
+        process.env.PUBLIC_WRITE_RATE_TTL_MS,
         60_000,
       ),
     },
