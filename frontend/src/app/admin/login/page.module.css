@@ -42,3 +42,26 @@
 .title {
   margin: 0;
 }
+
+.footer {
+  margin: var(--space-6) 0 0;
+  text-align: center;
+}
+
+.siteLink {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.siteLink:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.siteLink:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}

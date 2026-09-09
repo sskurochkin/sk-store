@@ -1,12 +1,16 @@
 import Link from "next/link";
+import { AdminPanelLink } from "@/components/layout/AdminPanelLink";
 import { MiniCart } from "@/components/cart/MiniCart";
 import { Container } from "@/components/ui/Container/Container";
 import { MAIN_NAV_LINKS } from "@/constants/navigation";
 import { SITE_NAME } from "@/constants/site";
+import { getCurrentUser } from "@/services/auth-server";
 import { MobileNav } from "./MobileNav";
 import styles from "./Header.module.css";
 
-export function Header() {
+export async function Header() {
+  const admin = await getCurrentUser();
+
   return (
     <header className={styles.header}>
       <Container className={styles.inner}>
@@ -27,6 +31,7 @@ export function Header() {
         </nav>
 
         <div className={styles.actions}>
+          {admin ? <AdminPanelLink /> : null}
           <MiniCart />
           <MobileNav links={MAIN_NAV_LINKS} />
         </div>

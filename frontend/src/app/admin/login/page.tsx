@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 import { Heading } from "@/components/ui/Heading/Heading";
 import { Text } from "@/components/ui/Text/Text";
@@ -32,6 +33,11 @@ export default async function AdminLoginPage({
           <Text muted>Введите учётные данные администратора.</Text>
         </header>
         <AdminLoginForm nextPath={nextPath} />
+        <p className={styles.footer}>
+          <Link href="/" className={styles.siteLink}>
+            ← На главную
+          </Link>
+        </p>
       </div>
     </div>
   );

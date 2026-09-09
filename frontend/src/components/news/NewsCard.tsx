@@ -8,10 +8,13 @@ import styles from "./NewsCard.module.css";
 
 type NewsCardProps = {
   news: News;
+  /** Heading level for the news title (default `2`). Use `3` under a page section `h2`. */
+  headingLevel?: 2 | 3;
 };
 
-export function NewsCard({ news }: NewsCardProps) {
+export function NewsCard({ news, headingLevel = 2 }: NewsCardProps) {
   const dateLabel = formatDisplayDate(news.createdAt);
+  const TitleTag = headingLevel === 3 ? "h3" : "h2";
 
   return (
     <Link href={`/news/${news.alias}`} className={styles.link}>
@@ -28,7 +31,7 @@ export function NewsCard({ news }: NewsCardProps) {
               {dateLabel}
             </time>
           ) : null}
-          <h2 className={styles.title}>{news.title}</h2>
+          <TitleTag className={styles.title}>{news.title}</TitleTag>
           <p className={styles.excerpt}>{news.description}</p>
           {news.tags.length > 0 ? (
             <ul className={styles.tags}>

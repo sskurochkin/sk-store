@@ -48,14 +48,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         {...rest}
       />
       {hint && !error ? (
-        <p id={hintId} className={styles.hint}>
+        <span id={hintId} className={styles.hint}>
           {hint}
-        </p>
+        </span>
       ) : null}
       {error ? (
-        <p id={errorId} className={styles.error} role="alert">
+        <span id={errorId} className={styles.error} role="alert">
           {error}
-        </p>
+        </span>
       ) : null}
     </div>
   );

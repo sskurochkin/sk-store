@@ -20,6 +20,27 @@
   display: block;
 }
 
+.siteLink {
+  display: block;
+  margin-top: var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.siteLink:hover {
+  background-color: var(--color-surface-muted);
+  color: var(--color-primary);
+}
+
+.siteLink:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
 @media (min-width: 60rem) {
   .root {
     display: none;

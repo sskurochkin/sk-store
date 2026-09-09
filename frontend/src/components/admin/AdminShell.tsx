@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AdminLogoutButton } from "@/components/admin/AdminLogoutButton";
 import { AdminMobileNav } from "@/components/admin/AdminMobileNav";
 import { AdminNavLinks } from "@/components/admin/AdminNavLinks";
@@ -21,6 +22,9 @@ export function AdminShell({ user, children }: AdminShellProps) {
         <nav aria-label="Разделы админки">
           <AdminNavLinks />
         </nav>
+        <Link href="/" className={styles.siteLink}>
+          ← На сайт
+        </Link>
       </aside>
 
       <div className={styles.column}>
@@ -30,6 +34,9 @@ export function AdminShell({ user, children }: AdminShellProps) {
             <p className={styles.topbarTitle}>Администрирование</p>
           </div>
           <div className={styles.topbarEnd}>
+            <Link href="/" className={styles.topbarSiteLink}>
+              На сайт
+            </Link>
             <p className={styles.user}>
               <span className={styles.userLabel}>Пользователь</span>
               <span className={styles.username}>{user.username}</span>

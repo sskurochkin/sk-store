@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { IconButton } from "@/components/ui/IconButton/IconButton";
 import { AdminNavLinks } from "./AdminNavLinks";
@@ -57,6 +58,13 @@ export function AdminMobileNav() {
       >
         <nav aria-label="Админ-меню">
           <AdminNavLinks onNavigate={() => setOpen(false)} />
+          <Link
+            href="/"
+            className={styles.siteLink}
+            onClick={() => setOpen(false)}
+          >
+            ← На сайт
+          </Link>
         </nav>
       </div>
     </div>

@@ -1,82 +1,45 @@
-.hero {
-  min-height: calc(100vh - var(--header-height));
-  display: flex;
-  align-items: center;
-  background:
-    linear-gradient(
-      165deg,
-      rgb(255 255 255 / 0.55) 0%,
-      transparent 45%
-    ),
-    radial-gradient(
-      circle at 80% 70%,
-      rgb(201 162 39 / 0.16),
-      transparent 42%
-    );
+.section {
+  background-color: var(--color-background);
 }
 
-.heroInner {
+.sectionHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.sectionHeadingGroup {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-5);
+  gap: var(--space-2);
   max-width: 36rem;
 }
 
-.brand {
-  font-size: clamp(2.5rem, 8vw, 4rem);
-  letter-spacing: -0.03em;
-}
-
-.lead {
-  max-width: 28rem;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  margin-top: var(--space-2);
-}
-
-.primaryCta,
-.ghostCta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 3rem;
-  padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-lg);
+.sectionLink {
+  color: var(--color-primary);
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
   text-decoration: none;
-  transition:
-    background-color var(--transition-fast),
-    color var(--transition-fast),
-    border-color var(--transition-fast);
 }
 
-.primaryCta {
-  background-color: var(--color-primary);
-  color: #faf8f5;
+.sectionLink:hover {
+  text-decoration: underline;
 }
 
-.primaryCta:hover {
-  background-color: var(--color-primary-hover);
-  color: #faf8f5;
-}
-
-.ghostCta {
-  background-color: transparent;
-  color: var(--color-primary);
-}
-
-.ghostCta:hover {
-  background-color: var(--color-surface-muted);
-}
-
-.primaryCta:focus-visible,
-.ghostCta:focus-visible {
+.sectionLink:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.formSection {
+  background-color: var(--color-surface);
+}
+
+.formAnchor {
+  max-width: 40rem;
+  scroll-margin-top: calc(var(--header-height) + var(--space-6));
 }
