@@ -12,4 +12,5 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/contact-requests", label: "Contact Requests" },
   { href: "/admin/settings", label: "Settings" },
+  { href: "/admin/icons", label: "Icons" },
 ];

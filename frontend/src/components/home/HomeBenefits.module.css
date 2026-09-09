@@ -26,7 +26,7 @@
   min-width: 0;
 }
 
-.icon {
+.iconWrap {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
@@ -36,6 +36,11 @@
   border-radius: var(--radius-md);
   background-color: var(--color-surface-muted);
   color: var(--color-primary);
+}
+
+.icon {
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
 .copy {

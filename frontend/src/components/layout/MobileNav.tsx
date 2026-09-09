@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
+import { Icon } from "@/components/ui/icon/Icon";
 import { IconButton } from "@/components/ui/IconButton/IconButton";
 import type { NavLink } from "@/constants/navigation";
 import styles from "./MobileNav.module.css";
@@ -50,9 +51,7 @@ export function MobileNav({ links }: MobileNavProps) {
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
       >
-        <span className={styles.icon} aria-hidden="true">
-          {open ? "✕" : "☰"}
-        </span>
+        <Icon name={open ? "i-close" : "i-burger"} className={styles.icon} />
       </IconButton>
 
       <div

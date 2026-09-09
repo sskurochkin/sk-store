@@ -9,6 +9,7 @@ export {
   LoadingState,
 } from "./FeedbackState/FeedbackState";
 export { Heading } from "./Heading/Heading";
+export { Icon } from "./icon/Icon";
 export { IconButton } from "./IconButton/IconButton";
 export { Input } from "./Input/Input";
 export { MediaImage } from "./MediaImage/MediaImage";

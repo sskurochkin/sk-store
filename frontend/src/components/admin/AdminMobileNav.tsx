@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
+import { Icon } from "@/components/ui/icon/Icon";
 import { IconButton } from "@/components/ui/IconButton/IconButton";
 import { AdminNavLinks } from "./AdminNavLinks";
 import styles from "./AdminMobileNav.module.css";
@@ -46,7 +47,7 @@ export function AdminMobileNav() {
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
       >
-        <span aria-hidden="true">{open ? "✕" : "☰"}</span>
+        <Icon name={open ? "i-close" : "i-burger"} className={styles.icon} />
       </IconButton>
 
       <div
