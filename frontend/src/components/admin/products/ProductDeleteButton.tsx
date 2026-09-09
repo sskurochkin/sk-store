@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ConfirmModal } from "@/components/admin/ConfirmModal";
 import { Button } from "@/components/ui/Button/Button";
 import { ApiError } from "@/services/api";
 import { deleteProduct } from "@/services/admin-products";
@@ -17,21 +18,16 @@ export function ProductDeleteButton({
   productName,
 }: ProductDeleteButtonProps) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  async function handleDelete() {
-    const confirmed = window.confirm(
-      `Удалить продукт «${productName}»? Это действие нельзя отменить.`,
-    );
-    if (!confirmed) {
-      return;
-    }
-
+  async function handleConfirm() {
     setError(null);
     setIsDeleting(true);
     try {
       await deleteProduct(productId);
+      setOpen(false);
       router.push("/admin/products");
       router.refresh();
     } catch (err: unknown) {
@@ -50,15 +46,34 @@ export function ProductDeleteButton({
         type="button"
         variant="danger"
         disabled={isDeleting}
-        onClick={handleDelete}
+        onClick={() => {
+          setError(null);
+          setOpen(true);
+        }}
       >
-        {isDeleting ? "Удаление…" : "Удалить"}
+        Удалить
       </Button>
       {error ? (
         <p className={styles.error} role="alert">
           {error}
         </p>
       ) : null}
+      <ConfirmModal
+        open={open}
+        title="Удалить продукт?"
+        description={
+          <>
+            Продукт «{productName}» будет удалён без возможности восстановления.
+          </>
+        }
+        confirming={isDeleting}
+        onCancel={() => {
+          if (!isDeleting) {
+            setOpen(false);
+          }
+        }}
+        onConfirm={handleConfirm}
+      />
     </div>
   );
 }

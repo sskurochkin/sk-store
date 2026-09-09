@@ -503,6 +503,7 @@ POST   /contact-requests
 GET    /contact-requests
 GET    /contact-requests/:id
 PATCH  /contact-requests/:id/status
+DELETE /contact-requests/:id
 
 GET    /socials
 POST   /socials
@@ -510,7 +511,7 @@ PATCH  /socials/:id
 DELETE /socials/:id
 ```
 
-`POST /contact-requests` is public (rate-limited). Admin contact-request endpoints require JWT (later Admin phase).
+`POST /contact-requests` is public (rate-limited). Admin contact-request list/detail/status/delete endpoints require JWT.
 
 Protected admin endpoints must be guarded.
 

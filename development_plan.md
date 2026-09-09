@@ -526,6 +526,13 @@ After successful login:
 - Contact Requests (`/admin/contact-requests`)
 - Statistics
 
+### List tables UX
+
+Shared admin list behavior:
+- delete actions require an accessible confirmation modal (not `window.confirm`);
+- tables paginate client-side with page size from `ADMIN_TABLE_PAGE_SIZE` (`frontend/src/constants/admin-table.ts`, default `3`);
+- Orders and Contact Requests tables support column sorting (status, date, client; Orders also sum).
+
 ### Settings
 
 Initial scope:
@@ -570,11 +577,11 @@ Admin can:
 
 ### Contact Requests
 
-Admin can (separate Admin UI phase — not part of the public Contacts foundation):
+Admin can (Admin UI):
 - view contact request list;
 - open a single request;
 - change status (`NEW` → `IN_PROGRESS` → `COMPLETED`, or `CANCELLED`);
-- retain history (no automatic purge).
+- delete a request (manual; no automatic purge).
 
 Planned admin API (JWT cookie required; same path convention as other admin resources):
 
@@ -582,6 +589,7 @@ Planned admin API (JWT cookie required; same path convention as other admin reso
 GET    /contact-requests
 GET    /contact-requests/:id
 PATCH  /contact-requests/:id/status
+DELETE /contact-requests/:id
 ```
 
 ### Statistics
@@ -623,6 +631,7 @@ POST   /contact-requests
 GET    /contact-requests
 GET    /contact-requests/:id
 PATCH  /contact-requests/:id/status
+DELETE /contact-requests/:id
 
 GET    /socials
 POST   /socials
@@ -631,7 +640,7 @@ DELETE /socials/:id
 ```
 
 `POST /contact-requests` is public (no JWT), rate-limited, and always creates `status: NEW`.
-Admin contact-request read/status endpoints require JWT and belong to a later Admin phase.
+Admin contact-request list/detail/status/delete endpoints require JWT.
 
 Protected endpoints must be explicitly guarded.
 
@@ -865,9 +874,8 @@ Before MVP completion verify:
 - order list / detail / status.
 
 ### Phase 21 — Admin Contact Requests
-- contact request list;
-- contact request detail;
-- status changes via authenticated API.
+- contact request list / detail / status / delete;
+- list sort + shared admin table pagination / delete confirm modal.
 
 ### Phase 22 — Admin Settings
 - socials / settings UI.

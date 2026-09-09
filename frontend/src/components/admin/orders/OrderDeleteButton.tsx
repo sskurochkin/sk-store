@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ConfirmModal } from "@/components/admin/ConfirmModal";
 import { Button } from "@/components/ui/Button/Button";
 import { ApiError } from "@/services/api";
 import { deleteOrder } from "@/services/admin-orders";
@@ -13,21 +14,16 @@ type OrderDeleteButtonProps = {
 
 export function OrderDeleteButton({ orderId }: OrderDeleteButtonProps) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  async function handleDelete() {
-    const confirmed = window.confirm(
-      `Удалить заказ «${orderId}»? Это действие нельзя отменить.`,
-    );
-    if (!confirmed) {
-      return;
-    }
-
+  async function handleConfirm() {
     setError(null);
     setIsDeleting(true);
     try {
       await deleteOrder(orderId);
+      setOpen(false);
       router.push("/admin/orders");
       router.refresh();
     } catch (err: unknown) {
@@ -46,15 +42,34 @@ export function OrderDeleteButton({ orderId }: OrderDeleteButtonProps) {
         type="button"
         variant="danger"
         disabled={isDeleting}
-        onClick={handleDelete}
+        onClick={() => {
+          setError(null);
+          setOpen(true);
+        }}
       >
-        {isDeleting ? "Удаление…" : "Удалить заказ"}
+        Удалить заказ
       </Button>
       {error ? (
         <p className={styles.error} role="alert">
           {error}
         </p>
       ) : null}
+      <ConfirmModal
+        open={open}
+        title="Удалить заказ?"
+        description={
+          <>
+            Заказ «{orderId}» будет удалён без возможности восстановления.
+          </>
+        }
+        confirming={isDeleting}
+        onCancel={() => {
+          if (!isDeleting) {
+            setOpen(false);
+          }
+        }}
+        onConfirm={handleConfirm}
+      />
     </div>
   );
 }

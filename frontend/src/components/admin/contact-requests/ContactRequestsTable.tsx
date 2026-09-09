@@ -3,24 +3,22 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AdminTablePagination } from "@/components/admin/AdminTablePagination";
-import { orderStatusLabel } from "@/constants/order-status";
-import { formatPrice } from "@/lib/format-price";
+import { contactRequestStatusLabel } from "@/constants/contact-request-status";
 import {
   compareIsoDate,
-  compareMoney,
   compareText,
   nextSortDirection,
   useAdminTablePage,
   type SortDirection,
 } from "@/lib/admin-table";
-import type { AdminOrderListItem } from "@/types/order";
-import styles from "./OrdersTable.module.css";
+import type { AdminContactRequest } from "@/types/contact-request";
+import styles from "./ContactRequestsTable.module.css";
 
-type OrdersTableProps = {
-  orders: AdminOrderListItem[];
+type ContactRequestsTableProps = {
+  requests: AdminContactRequest[];
 };
 
-type SortKey = "date" | "client" | "status" | "sum";
+type SortKey = "date" | "client" | "status";
 
 function formatDate(iso: string): string {
   const date = new Date(iso);
@@ -36,16 +34,24 @@ function formatDate(iso: string): string {
   });
 }
 
-function clientName(order: AdminOrderListItem): string {
-  return `${order.firstName} ${order.lastName}`.trim();
+function messagePreview(message: string, maxLength = 80): string {
+  const trimmed = message.trim();
+  if (trimmed.length <= maxLength) {
+    return trimmed;
+  }
+  return `${trimmed.slice(0, maxLength).trimEnd()}…`;
 }
 
-export function OrdersTable({ orders }: OrdersTableProps) {
+function clientName(request: AdminContactRequest): string {
+  return `${request.firstName} ${request.lastName}`.trim();
+}
+
+export function ContactRequestsTable({ requests }: ContactRequestsTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("date");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
   const sorted = useMemo(() => {
-    const items = [...orders];
+    const items = [...requests];
     items.sort((left, right) => {
       let result = 0;
       switch (sortKey) {
@@ -57,18 +63,15 @@ export function OrdersTable({ orders }: OrdersTableProps) {
           break;
         case "status":
           result = compareText(
-            orderStatusLabel(left.status),
-            orderStatusLabel(right.status),
+            contactRequestStatusLabel(left.status),
+            contactRequestStatusLabel(right.status),
           );
-          break;
-        case "sum":
-          result = compareMoney(left.totalPrice, right.totalPrice);
           break;
       }
       return sortDirection === "asc" ? result : -result;
     });
     return items;
-  }, [orders, sortKey, sortDirection]);
+  }, [requests, sortKey, sortDirection]);
 
   const { page, setPage, pageItems, totalItems } = useAdminTablePage(sorted);
 
@@ -92,9 +95,6 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.th} scope="col">
-                ID
-              </th>
               <th
                 className={styles.th}
                 scope="col"
@@ -155,24 +155,8 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                   {sortLabel("status", "Статус")}
                 </button>
               </th>
-              <th
-                className={styles.th}
-                scope="col"
-                aria-sort={
-                  sortKey === "sum"
-                    ? sortDirection === "asc"
-                      ? "ascending"
-                      : "descending"
-                    : "none"
-                }
-              >
-                <button
-                  type="button"
-                  className={styles.sortButton}
-                  onClick={() => toggleSort("sum")}
-                >
-                  {sortLabel("sum", "Сумма")}
-                </button>
+              <th className={styles.th} scope="col">
+                Сообщение
               </th>
               <th className={styles.th} scope="col">
                 Действия
@@ -180,22 +164,25 @@ export function OrdersTable({ orders }: OrdersTableProps) {
             </tr>
           </thead>
           <tbody>
-            {pageItems.map((order) => (
-              <tr key={order.id} className={styles.tr}>
+            {pageItems.map((request) => (
+              <tr key={request.id} className={styles.tr}>
+                <td className={styles.td}>{formatDate(request.createdAt)}</td>
+                <td className={styles.td}>{clientName(request)}</td>
                 <td className={styles.td}>
-                  <span className={styles.id}>{order.id}</span>
+                  <div>{request.phone}</div>
+                  <div className={styles.muted}>{request.email}</div>
                 </td>
-                <td className={styles.td}>{formatDate(order.createdAt)}</td>
-                <td className={styles.td}>{clientName(order)}</td>
                 <td className={styles.td}>
-                  <div>{order.userPhone}</div>
-                  <div className={styles.muted}>{order.userEmail}</div>
+                  {contactRequestStatusLabel(request.status)}
                 </td>
-                <td className={styles.td}>{orderStatusLabel(order.status)}</td>
-                <td className={styles.td}>{formatPrice(order.totalPrice)}</td>
+                <td className={styles.td}>
+                  <span className={styles.preview}>
+                    {messagePreview(request.message)}
+                  </span>
+                </td>
                 <td className={styles.td}>
                   <Link
-                    href={`/admin/orders/${order.id}`}
+                    href={`/admin/contact-requests/${request.id}`}
                     className={styles.link}
                   >
                     Открыть

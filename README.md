@@ -56,6 +56,8 @@ Current focus: **Phase 17 — Admin UI Foundation** completed (login/logout, pro
 
 Public pages: `/`, `/products`, `/news`, `/contacts`, `/cart`.
 
-Admin: `/admin/login`, `/admin` (dashboard). CRUD modules come later.
+Admin: `/admin/login`, `/admin` dashboard + Products / News / Orders / Contact Requests.
+
+Admin list tables: page size `ADMIN_TABLE_PAGE_SIZE` (default 3); orders/contact-requests support column sorting; deletes use a confirmation modal.
 
 Browser API calls use same-origin `/api/*` (Next.js rewrite → NestJS). `NEXT_PUBLIC_API_URL` is the Nest origin for rewrites and server-side fetches.

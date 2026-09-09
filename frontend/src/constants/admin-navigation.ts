@@ -10,10 +10,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { href: "/admin/products", label: "Products" },
   { href: "/admin/news", label: "News" },
   { href: "/admin/orders", label: "Orders" },
-  {
-    href: "/admin/contact-requests",
-    label: "Contact Requests",
-    comingSoon: true,
-  },
+  { href: "/admin/contact-requests", label: "Contact Requests" },
   { href: "/admin/settings", label: "Settings", comingSoon: true },
 ];

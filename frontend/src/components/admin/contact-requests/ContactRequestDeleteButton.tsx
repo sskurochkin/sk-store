@@ -5,18 +5,18 @@ import { useState } from "react";
 import { ConfirmModal } from "@/components/admin/ConfirmModal";
 import { Button } from "@/components/ui/Button/Button";
 import { ApiError } from "@/services/api";
-import { deleteNews } from "@/services/admin-news";
-import styles from "./NewsDeleteButton.module.css";
+import { deleteContactRequest } from "@/services/admin-contact-requests";
+import styles from "./ContactRequestDeleteButton.module.css";
 
-type NewsDeleteButtonProps = {
-  newsId: string;
-  newsTitle: string;
+type ContactRequestDeleteButtonProps = {
+  requestId: string;
+  clientName: string;
 };
 
-export function NewsDeleteButton({
-  newsId,
-  newsTitle,
-}: NewsDeleteButtonProps) {
+export function ContactRequestDeleteButton({
+  requestId,
+  clientName,
+}: ContactRequestDeleteButtonProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,15 +26,15 @@ export function NewsDeleteButton({
     setError(null);
     setIsDeleting(true);
     try {
-      await deleteNews(newsId);
+      await deleteContactRequest(requestId);
       setOpen(false);
-      router.push("/admin/news");
+      router.push("/admin/contact-requests");
       router.refresh();
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError("Не удалось удалить новость.");
+        setError("Не удалось удалить заявку.");
       }
       setIsDeleting(false);
     }
@@ -51,7 +51,7 @@ export function NewsDeleteButton({
           setOpen(true);
         }}
       >
-        Удалить
+        Удалить заявку
       </Button>
       {error ? (
         <p className={styles.error} role="alert">
@@ -60,10 +60,11 @@ export function NewsDeleteButton({
       ) : null}
       <ConfirmModal
         open={open}
-        title="Удалить новость?"
+        title="Удалить заявку?"
         description={
           <>
-            Новость «{newsTitle}» будет удалена без возможности восстановления.
+            Заявка от «{clientName}» будет удалена без возможности
+            восстановления.
           </>
         }
         confirming={isDeleting}

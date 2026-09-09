@@ -21,7 +21,7 @@ SK Store is split into two applications:
 - `news` — public news read + admin news CRUD with HTML sanitization on write (Phase 6)
 - `socials` — public social list (MVP settings retrieval) + admin CRUD (Phase 7)
 - `orders` — public `POST /api/orders` with server-side pricing, Decimal totals, transactional Order + OrderItem snapshots (Phase 8)
-- `contact-requests` — public `POST /api/contact-requests` with validation + throttling; status always `NEW` (Phase 16); admin list/status later
+- `contact-requests` — public `POST /api/contact-requests` + admin list/detail/status (JWT; Phase 16 + 21)
 - `email` — `EmailModule` / `EmailService` with Nodemailer transport; order confirmation after successful create (Phase 9)
 - Admin UI foundation (Phase 17) — same-origin `/api` rewrite, `/admin/login`, protected `/admin` shell (see below)
 
@@ -105,12 +105,12 @@ NEW → IN_PROGRESS → COMPLETED
          ↘ CANCELLED (from NEW or IN_PROGRESS)
 ```
 
-Public API (this phase):
+Public API:
 
 - `POST /api/contact-requests` — no JWT; ValidationPipe; throttled (`ThrottlerGuard`); status forced to `NEW`
 - Response: `{ id, status, createdAt }` (no need to echo PII back)
 
-Planned admin API (later Admin Contact Requests phase, JWT required):
+Admin API (Phase 21, JWT required):
 
 - `GET /api/contact-requests`
 - `GET /api/contact-requests/:id`
@@ -122,9 +122,9 @@ Security:
 - do not log full email, phone, or message
 - message stored and displayed as plain text only
 - no contact-request email notification in this phase (Orders email remains separate)
-- no automatic deletion / retention purge
+- no automatic deletion / retention purge / DELETE endpoint
 
-Frontend Admin UI route (later): `/admin/contact-requests`
+Frontend Admin UI: `/admin/contact-requests`, `/admin/contact-requests/[id]`
 
 ### Admin UI foundation (Phase 17)
 
@@ -145,7 +145,7 @@ HTTP-only JWT cookie (`access_token`)
 - Browser helpers use same-origin `/api/...` (empty base URL in the browser)
 - Server Components still call Nest origin for public data; authenticated server checks forward `Cookie`
 - `middleware` protects `/admin/*` (except login) via Nest `GET /api/auth/me`
-- Routes: `/admin/login` (public), `/admin` dashboard + shell; Products + News + Orders CRUD live; other CRUD sections marked coming soon
+- Routes: `/admin/login` (public), `/admin` dashboard + shell; Products + News + Orders + Contact Requests live; Settings marked coming soon
 - JWT never in localStorage / sessionStorage / URL / rendered HTML
 
 ### Admin Products (Phase 18)
@@ -168,7 +168,22 @@ HTTP-only JWT cookie (`access_token`)
 - Nest admin API (JWT): `GET /orders`, `GET /orders/:id`, `PATCH /orders/:id/status`, `DELETE /orders/:id`
 - Public `POST /orders` unchanged — create response still omits customer PII
 - Admin responses include `firstName`, `lastName`, `userEmail`, `userPhone`, timestamps; list omits `items`, detail includes snapshots
-- Frontend: `/admin/orders`, `/admin/orders/[id]`; status select + delete confirm; labels in `constants/order-status.ts`
+- Frontend: `/admin/orders`, `/admin/orders/[id]`; status select + modal delete confirm; labels in `constants/order-status.ts`
+- List table: client-side sort (дата / клиент / статус / сумма) + pagination (`ADMIN_TABLE_PAGE_SIZE`)
+
+### Admin Contact Requests (Phase 21)
+
+- Nest admin API (JWT): `GET /contact-requests`, `GET /contact-requests/:id`, `PATCH /contact-requests/:id/status`, `DELETE /contact-requests/:id`
+- Public `POST /contact-requests` unchanged — create response still `{ id, status, createdAt }` only
+- Admin responses include PII + `message` + `consent` + timestamps; admin may hard-delete a request (no automatic purge)
+- Frontend: `/admin/contact-requests`, `/admin/contact-requests/[id]`; status select + modal delete; labels in `constants/contact-request-status.ts`
+- List table: client-side sort (дата / клиент / статус) + pagination (`ADMIN_TABLE_PAGE_SIZE`)
+
+### Admin list UX (shared)
+
+- Delete actions use accessible `ConfirmModal` (not `window.confirm`)
+- Admin list tables paginate with `ADMIN_TABLE_PAGE_SIZE` (`frontend/src/constants/admin-table.ts`, default `3`)
+- Shared helpers: `AdminTablePagination`, `useAdminTablePage` in `lib/admin-table.ts`
 
 ### Orders pricing rule
 

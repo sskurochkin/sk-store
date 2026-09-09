@@ -179,4 +179,87 @@ describe('ContactRequests (e2e)', () => {
 
     process.env.AUTH_LOGIN_RATE_LIMIT = '5';
   });
+
+  async function loginAgent() {
+    const agent = request.agent(app.getHttpServer());
+    await agent
+      .post(`${prefix}/auth/login`)
+      .send({ username: 'admin', password: 'admin123' })
+      .expect(200);
+    return agent;
+  }
+
+  it('GET /contact-requests without cookie returns 401', async () => {
+    await request(app.getHttpServer())
+      .get(`${prefix}/contact-requests`)
+      .expect(401);
+  });
+
+  it('admin can list, get, and update status of a contact request', async () => {
+    const created = (
+      await request(app.getHttpServer())
+        .post(`${prefix}/contact-requests`)
+        .send(validPayload)
+        .expect(201)
+    ).body as ContactRequestBody;
+    createdIds.push(created.id);
+
+    expect(created).not.toHaveProperty('firstName');
+    expect(created).not.toHaveProperty('message');
+
+    const agent = await loginAgent();
+
+    const list = await agent.get(`${prefix}/contact-requests`).expect(200);
+    expect(Array.isArray(list.body)).toBe(true);
+    const listed = (
+      list.body as Array<{
+        id: string;
+        firstName: string;
+        email: string;
+        message: string;
+      }>
+    ).find((row) => row.id === created.id);
+    expect(listed).toMatchObject({
+      id: created.id,
+      firstName: 'Ivan',
+      email: 'ivan.contact@example.com',
+      message: validPayload.message,
+    });
+
+    const detail = await agent
+      .get(`${prefix}/contact-requests/${created.id}`)
+      .expect(200);
+    expect(detail.body).toMatchObject({
+      id: created.id,
+      firstName: 'Ivan',
+      lastName: 'Ivanov',
+      phone: '+375291234567',
+      email: 'ivan.contact@example.com',
+      message: validPayload.message,
+      consent: true,
+      status: 'NEW',
+    });
+
+    const patched = await agent
+      .patch(`${prefix}/contact-requests/${created.id}/status`)
+      .send({ status: ContactRequestStatus.IN_PROGRESS })
+      .expect(200);
+    expect(patched.body).toMatchObject({
+      id: created.id,
+      status: 'IN_PROGRESS',
+      firstName: 'Ivan',
+    });
+
+    await agent.delete(`${prefix}/contact-requests/${created.id}`).expect(204);
+
+    await agent.get(`${prefix}/contact-requests/${created.id}`).expect(404);
+    createdIds.length = 0;
+  });
+
+  it('GET /contact-requests/:id unknown returns 404 for admin', async () => {
+    const agent = await loginAgent();
+    await agent
+      .get(`${prefix}/contact-requests/does-not-exist-999`)
+      .expect(404);
+  });
 });

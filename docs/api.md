@@ -207,11 +207,20 @@ Errors: `400` validation, `429` throttled (same Nest `ThrottlerGuard` / auth rat
 
 Do not log full email, phone, or message. No email notification for contact requests in this phase.
 
-Planned admin endpoints (JWT cookie; later Admin Contact Requests phase):
+Admin (HTTP-only auth cookie required):
 
-- `GET /api/contact-requests`
-- `GET /api/contact-requests/:id`
-- `PATCH /api/contact-requests/:id/status`
+- `GET /api/contact-requests` — list (`createdAt` desc). Full admin fields including customer PII + `message` + `consent`.
+- `GET /api/contact-requests/:id` — detail; `404` if missing
+- `PATCH /api/contact-requests/:id/status` — body `{ "status": "NEW" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" }`; returns admin detail
+- `DELETE /api/contact-requests/:id` — hard delete (`204`); `404` if missing
+
+Admin response fields: `id`, `status`, `firstName`, `lastName`, `phone`, `email`, `message`, `consent`, `createdAt`, `updatedAt`.
+
+> Public `POST /api/contact-requests` response remains minimal (`id`, `status`, `createdAt` only). There is no automatic retention purge; administrators may delete individual requests via `DELETE`.
+
+Admin UI list tables (orders, contact requests, products, news) paginate and sort on the client (`ADMIN_TABLE_PAGE_SIZE`); the list APIs above still return the full admin collection.
+
+Errors (admin): `400` validation, `401` unauthenticated, `404` missing contact request.
 
 ### Order email behavior
 

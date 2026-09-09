@@ -29,14 +29,15 @@
   border-bottom: none;
 }
 
-.id {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--font-size-xs);
-}
-
 .muted {
   color: var(--color-text-muted);
   font-size: var(--font-size-xs);
+}
+
+.preview {
+  display: inline-block;
+  max-width: 16rem;
+  color: var(--color-text-muted);
 }
 
 .link {
