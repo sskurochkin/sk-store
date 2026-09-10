@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { FooterCookieSettingsLink } from "@/components/layout/FooterCookieSettingsLink";
 import { SocialLinks } from "@/components/social/SocialLinks";
 import { Container } from "@/components/ui/Container/Container";
 import { Text } from "@/components/ui/Text/Text";
+import { FOOTER_LEGAL_LINKS } from "@/constants/legal-links";
 import { MAIN_NAV_LINKS } from "@/constants/navigation";
 import { SITE_NAME } from "@/constants/site";
 import { getSocials } from "@/services/socials";
@@ -37,6 +39,22 @@ export async function Footer() {
                 </Link>
               </li>
             ))}
+          </ul>
+        </nav>
+
+        <nav aria-label="Документы">
+          <p className={styles.heading}>Документы</p>
+          <ul className={styles.navList}>
+            {FOOTER_LEGAL_LINKS.map((item) => (
+              <li key={item.href}>
+                <Link href={item.href} className={styles.navLink}>
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <FooterCookieSettingsLink />
+            </li>
           </ul>
         </nav>
 

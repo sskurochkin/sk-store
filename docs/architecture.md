@@ -202,11 +202,20 @@ After successful admin create/update/delete, client forms call authenticated Ser
 - Orders / contact-requests: no public cache tags
 - ISR `revalidate: 60` remains a fallback if a tag is missed
 
+### Legal pages and cookie consent
+
+- `/privacy-policy` — privacy policy template (14 sections); RSC + `LegalDocument`
+- `/cookie-policy` — cookie/localStorage explanation; link to privacy policy + «Настройки cookie»
+- `CookieConsentBanner` in shop layout only; consent in `localStorage` key `sk-store:cookie-consent`
+- Categories: necessary (always on), functional, analytics, marketing — optional categories default off
+- Future analytics/marketing must read consent before loading scripts (see [`docs/cookie-consent.md`](./cookie-consent.md))
+- Footer «Документы»: privacy, cookie policy, cookie settings reopen link
+
 ### SEO / Performance (Phase 24)
 
 - `NEXT_PUBLIC_SITE_URL` → `getSiteUrl()` → root `metadataBase` ([`constants/site.ts`](../frontend/src/constants/site.ts))
 - Shared helper [`lib/seo.ts`](../frontend/src/lib/seo.ts) `buildPageMetadata` — title, description, `alternates.canonical`, Open Graph, Twitter
-- Public pages under `app/(shop)/`: home, products, news, contacts, cart, product/news detail
+- Public pages under `app/(shop)/`: home, products, news, contacts, cart, privacy-policy, cookie-policy, product/news detail
 - Product/news detail: OG image from `mainPhoto` only when it is an absolute `http(s)` URL
 - `/cart` and `/admin/*`: `robots: { index: false, follow: false }`
 - Images: `MediaImage` → `next/image`; `remotePatterns` include `example.com` plus optional `NEXT_PUBLIC_IMAGE_REMOTE_HOSTS`

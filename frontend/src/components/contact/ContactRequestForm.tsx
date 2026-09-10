@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { PersonalDataConsentLabel } from "@/components/legal/PersonalDataConsentLabel";
 import { Button } from "@/components/ui/Button/Button";
 import { Checkbox } from "@/components/ui/Checkbox/Checkbox";
 import { Input } from "@/components/ui/Input/Input";
@@ -187,7 +188,7 @@ export function ContactRequestForm() {
             render={({ field }) => (
               <Checkbox
                 id="contact-consent"
-                label="Согласие на обработку персональных данных"
+                label={<PersonalDataConsentLabel />}
                 required
                 disabled={isSubmitting}
                 checked={field.value}

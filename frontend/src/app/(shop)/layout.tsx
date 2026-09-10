@@ -1,4 +1,5 @@
 import { CartProvider } from "@/components/cart/CartProvider";
+import { CookieConsentBanner } from "@/components/cookie-consent/CookieConsentBanner";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import styles from "../layout.module.css";
@@ -15,6 +16,7 @@ export default function ShopLayout({
         {children}
       </main>
       <Footer />
+      <CookieConsentBanner />
     </CartProvider>
   );
 }

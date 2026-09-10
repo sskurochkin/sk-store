@@ -15,7 +15,7 @@
   flex-shrink: 0;
   width: 1.15rem;
   height: 1.15rem;
-  margin-top: 0.15rem;
+  margin: 0;
   accent-color: var(--color-primary);
   cursor: pointer;
 }
