@@ -14,24 +14,37 @@ import {
 import { Heading } from "@/components/ui/Heading/Heading";
 import { Section } from "@/components/ui/Section/Section";
 import { Text } from "@/components/ui/Text/Text";
-import { SITE_DESCRIPTION, SITE_NAME } from "@/constants/site";
-import { buildPageMetadata } from "@/lib/seo";
+import { resolveSiteSeo } from "@/lib/resolve-site-seo";
+import { buildPageMetadata, isAbsoluteHttpUrl } from "@/lib/seo";
 import { getNewsList } from "@/services/news";
 import { getProducts } from "@/services/products";
+import { getSiteSettings } from "@/services/settings";
 import type { News } from "@/types/news";
 import type { Product } from "@/types/product";
 import styles from "./page.module.css";
 
 const HOME_CONTACT_FORM_ID = "home-contact-request";
 
-export const metadata: Metadata = buildPageMetadata({
-  title: SITE_NAME,
-  description: SITE_DESCRIPTION,
-  path: "/",
-  absoluteTitle: true,
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  const seo = resolveSiteSeo(settings);
+  const ogImage = seo.ogImageUrl && isAbsoluteHttpUrl(seo.ogImageUrl)
+    ? seo.ogImageUrl
+    : undefined;
+
+  return buildPageMetadata({
+    title: settings.site.name,
+    description: seo.description,
+    path: "/",
+    absoluteTitle: true,
+    siteName: seo.siteName,
+    image: ogImage,
+    robots: seo.robots,
+  });
+}
 
 export default async function Home() {
+  const settings = await getSiteSettings();
   let products: Product[] = [];
   let productsFailed = false;
   let newsItems: News[] = [];
@@ -51,7 +64,7 @@ export default async function Home() {
 
   return (
     <>
-      <HomeHero formTargetId={HOME_CONTACT_FORM_ID} />
+      <HomeHero formTargetId={HOME_CONTACT_FORM_ID} settings={settings} />
 
       <Section
         spacing="lg"

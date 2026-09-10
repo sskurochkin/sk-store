@@ -20,6 +20,8 @@ export type BuildPageMetadataInput = {
   /** When true, title is not wrapped by the root `%s · Site` template. */
   absoluteTitle?: boolean;
   robots?: Metadata["robots"];
+  /** Override Open Graph / Twitter site name (defaults to SITE_NAME). */
+  siteName?: string;
 };
 
 /**
@@ -30,6 +32,7 @@ export function buildPageMetadata(input: BuildPageMetadataInput): Metadata {
   const imageUrl =
     input.image && isAbsoluteHttpUrl(input.image) ? input.image : undefined;
   const images = imageUrl ? [{ url: imageUrl }] : undefined;
+  const siteName = input.siteName?.trim() || SITE_NAME;
 
   return {
     title: input.absoluteTitle
@@ -42,7 +45,7 @@ export function buildPageMetadata(input: BuildPageMetadataInput): Metadata {
     openGraph: {
       type: "website",
       locale: "ru_RU",
-      siteName: SITE_NAME,
+      siteName,
       title: input.title,
       description: input.description,
       url: path,

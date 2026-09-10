@@ -1,8 +1,6 @@
-export type LegalSection = {
-  id: string;
-  title: string;
-  paragraphs: string[];
-};
+import type { LegalSection } from "@/types/legal-page";
+
+export type { LegalSection };
 
 /**
  * Neutral privacy policy draft for SK Store.

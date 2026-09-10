@@ -1,13 +1,5 @@
-export type HomeBenefit = {
-  id: string;
-  title: string;
-  description: string;
-  /** Sprite symbol id from `public/icons/sprite.svg`. */
-  icon: string;
-};
-
-/** Mock benefits for the home page until CMS/settings exist. */
-export const HOME_BENEFITS: HomeBenefit[] = [
+/** Fallback benefits when API is unavailable or empty. */
+export const HOME_BENEFITS = [
   {
     id: "fresh",
     title: "Свежая выпечка",

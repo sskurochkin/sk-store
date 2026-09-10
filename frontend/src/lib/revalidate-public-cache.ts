@@ -2,8 +2,11 @@
 
 import { revalidateTag } from "next/cache";
 import {
+  homeBenefitsCacheTags,
+  legalPageCacheTags,
   newsCacheTags,
   productCacheTags,
+  settingsCacheTags,
   socialsCacheTags,
 } from "@/lib/cache-tags";
 import { getCurrentUser } from "@/services/auth-server";
@@ -48,4 +51,21 @@ export async function revalidateNewsCache(input: {
 export async function revalidateSocialsCache(): Promise<void> {
   await requireAdmin();
   revalidateAllowlistedTags(socialsCacheTags());
+}
+
+export async function revalidateSettingsCache(): Promise<void> {
+  await requireAdmin();
+  revalidateAllowlistedTags(settingsCacheTags());
+}
+
+export async function revalidateHomeBenefitsCache(): Promise<void> {
+  await requireAdmin();
+  revalidateAllowlistedTags(homeBenefitsCacheTags());
+}
+
+export async function revalidateLegalPagesCache(input: {
+  slugs: string[];
+}): Promise<void> {
+  await requireAdmin();
+  revalidateAllowlistedTags(legalPageCacheTags(input.slugs));
 }

@@ -1,25 +1,31 @@
 import type { Metadata } from "next";
 import { ContactRequestForm } from "@/components/contact/ContactRequestForm";
+import { ContactsMap } from "@/components/contacts/ContactsMap";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { SocialLinks } from "@/components/social/SocialLinks";
+import { SiteContactsDetails } from "@/components/site/SiteContactsDetails";
 import { Container } from "@/components/ui/Container/Container";
 import { EmptyState } from "@/components/ui/FeedbackState/FeedbackState";
 import { Heading } from "@/components/ui/Heading/Heading";
 import { Section } from "@/components/ui/Section/Section";
 import { Text } from "@/components/ui/Text/Text";
-import { SITE_NAME } from "@/constants/site";
 import { buildPageMetadata } from "@/lib/seo";
+import { getSiteSettings } from "@/services/settings";
 import { getSocials } from "@/services/socials";
 import styles from "./page.module.css";
 
-export const metadata: Metadata = buildPageMetadata({
-  title: "Контакты",
-  description: `Свяжитесь с ${SITE_NAME}: форма заявки и социальные сети`,
-  path: "/contacts",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return buildPageMetadata({
+    title: "Контакты",
+    description: `Свяжитесь с ${settings.site.name}: форма заявки, контакты и социальные сети`,
+    path: "/contacts",
+    siteName: settings.site.name,
+  });
+}
 
 export default async function ContactsPage() {
-  const socials = await getSocials();
+  const [socials, settings] = await Promise.all([getSocials(), getSiteSettings()]);
 
   return (
     <Section
@@ -35,11 +41,25 @@ export default async function ContactsPage() {
             Контакты
           </Heading>
           <Text muted className={styles.intro}>
-            Оставьте заявку через форму или свяжитесь с нами в социальных сетях.
+            Оставьте заявку через форму или свяжитесь с нами напрямую.
           </Text>
         </header>
 
         <div className={styles.stack}>
+          <section
+            className={styles.contactDetails}
+            aria-labelledby="contacts-details-heading"
+          >
+            <Heading
+              id="contacts-details-heading"
+              level={2}
+              className={styles.subheading}
+            >
+              Как с нами связаться
+            </Heading>
+            <SiteContactsDetails contacts={settings.contacts} variant="page" />
+          </section>
+
           <section
             className={styles.socials}
             aria-labelledby="contacts-socials-heading"
@@ -73,12 +93,7 @@ export default async function ContactsPage() {
             >
               Карта
             </Heading>
-            <div className={styles.mapPlaceholder}>
-              <Text muted>
-                Карта появится здесь позже. Адрес и координаты пока не
-                опубликованы.
-              </Text>
-            </div>
+            <ContactsMap map={settings.map} />
           </section>
 
           <section

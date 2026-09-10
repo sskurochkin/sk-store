@@ -1,0 +1,27 @@
+export type SiteSettingsResponse = {
+  id: string;
+  siteName: string;
+  tagline: string | null;
+  description: string;
+  footerBlurb: string | null;
+  logoUrl: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  workingHours: string | null;
+  mapEnabled: boolean;
+  mapEmbedUrl: string | null;
+  mapLinkUrl: string | null;
+  legalOperatorName: string | null;
+  legalContactEmail: string | null;
+  seoMetaDescription: string | null;
+  seoKeywords: string | null;
+  seoRobotsIndex: boolean;
+  seoRobotsFollow: boolean;
+  seoOgTitle: string | null;
+  seoOgDescription: string | null;
+  seoOgImageUrl: string | null;
+  googleAnalyticsId: string | null;
+  yandexMetrikaId: string | null;
+  updatedAt: string;
+};

@@ -5,6 +5,7 @@ export const CACHE_TAGS = {
   news: "news",
   socials: "socials",
   settings: "settings",
+  homeBenefits: "home-benefits",
 } as const;
 
 /** Same pattern as product/news admin aliases. */
@@ -54,4 +55,27 @@ export function newsCacheTags(aliases: readonly string[]): string[] {
 /** Tags to revalidate for socials mutations. */
 export function socialsCacheTags(): string[] {
   return [CACHE_TAGS.socials, CACHE_TAGS.settings];
+}
+
+/** Tags to revalidate for site settings mutations. */
+export function settingsCacheTags(): string[] {
+  return [CACHE_TAGS.settings];
+}
+
+/** Tags to revalidate for home benefits mutations. */
+export function homeBenefitsCacheTags(): string[] {
+  return [CACHE_TAGS.homeBenefits];
+}
+
+const LEGAL_PAGE_SLUG_PATTERN = /^(privacy-policy|cookie-policy)$/;
+
+export function legalPageSlugTag(slug: string): string {
+  if (!LEGAL_PAGE_SLUG_PATTERN.test(slug)) {
+    throw new Error("Invalid legal page slug");
+  }
+  return `legal-page:${slug}`;
+}
+
+export function legalPageCacheTags(slugs: readonly string[]): string[] {
+  return slugs.map((slug) => legalPageSlugTag(slug));
 }

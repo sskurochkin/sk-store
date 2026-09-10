@@ -99,6 +99,55 @@ model Social {
   icon String
 }
 
+model SiteSettings {
+  id          String @id @default("default")
+
+  siteName    String
+  tagline     String?
+  description String @db.Text
+  footerBlurb String? @db.Text
+  logoUrl     String?
+
+  phone        String?
+  email        String?
+  address      String? @db.Text
+  workingHours String? @db.Text
+
+  mapEnabled  Boolean @default(false)
+  mapEmbedUrl String?
+  mapLinkUrl  String?
+
+  legalOperatorName String?
+  legalContactEmail String?
+
+  seoMetaDescription String? @db.Text
+  seoKeywords        String? @db.Text
+  seoRobotsIndex     Boolean @default(true)
+  seoRobotsFollow    Boolean @default(true)
+  seoOgTitle         String?
+  seoOgDescription   String? @db.Text
+  seoOgImageUrl      String?
+  googleAnalyticsId  String?
+  yandexMetrikaId    String?
+
+  updatedAt DateTime @updatedAt
+}
+
+model HomeBenefit {
+  id          String @id @default(cuid())
+  title       String
+  description String @db.Text
+  icon        String
+  sortOrder   Int    @default(0)
+}
+
+model LegalPage {
+  slug      String @unique
+  title     String
+  sections  Json
+  updatedAt DateTime @updatedAt
+}
+
 model ContactRequest {
   id        String               @id @default(cuid())
   firstName String

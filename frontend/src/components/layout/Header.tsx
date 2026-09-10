@@ -3,19 +3,31 @@ import { AdminPanelLink } from "@/components/layout/AdminPanelLink";
 import { MiniCart } from "@/components/cart/MiniCart";
 import { Container } from "@/components/ui/Container/Container";
 import { MAIN_NAV_LINKS } from "@/constants/navigation";
-import { SITE_NAME } from "@/constants/site";
 import { getCurrentUser } from "@/services/auth-server";
+import { getSiteSettings } from "@/services/settings";
 import { MobileNav } from "./MobileNav";
 import styles from "./Header.module.css";
 
 export async function Header() {
-  const admin = await getCurrentUser();
+  const [admin, settings] = await Promise.all([
+    getCurrentUser(),
+    getSiteSettings(),
+  ]);
 
   return (
     <header className={styles.header}>
       <Container className={styles.inner}>
         <Link href="/" className={styles.brand}>
-          {SITE_NAME}
+          {settings.site.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- admin-provided arbitrary logo URL
+            <img
+              src={settings.site.logoUrl}
+              alt={settings.site.name}
+              className={styles.logo}
+            />
+          ) : (
+            settings.site.name
+          )}
         </Link>
 
         <nav className={styles.desktopNav} aria-label="Main navigation">

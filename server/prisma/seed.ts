@@ -1,5 +1,5 @@
 import { hash } from 'bcrypt';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -90,6 +90,73 @@ const DEMO_SOCIALS = [
   },
 ] as const;
 
+const SITE_SETTINGS_ID = 'default';
+
+const DEMO_SITE_SETTINGS = {
+  id: SITE_SETTINGS_ID,
+  siteName: 'SK Store',
+  tagline: 'Свежая выпечка к вашему столу',
+  description: 'Свежая выпечка к вашему столу — каталог и заказ онлайн.',
+  footerBlurb:
+    'Пекарня и витрина заказов. Свежая выпечка и удобный заказ онлайн.',
+  logoUrl: null as string | null,
+  phone: '+375 (29) 123-45-67',
+  email: 'info@skstore.example',
+  address: 'г. Минск, ул. Примерная, 1',
+  workingHours: 'Пн–Сб: 8:00–20:00, Вс: 9:00–18:00',
+  mapEnabled: false,
+  mapEmbedUrl: null as string | null,
+  mapLinkUrl: null as string | null,
+  legalOperatorName: null as string | null,
+  legalContactEmail: 'privacy@skstore.example',
+  seoMetaDescription:
+    'Свежая выпечка к вашему столу — каталог и заказ онлайн.',
+  seoKeywords:
+    'пекарня, выпечка, хлеб, заказ онлайн, SK Store',
+  seoRobotsIndex: true,
+  seoRobotsFollow: true,
+  seoOgTitle: null as string | null,
+  seoOgDescription: null as string | null,
+  seoOgImageUrl: null as string | null,
+  googleAnalyticsId: null as string | null,
+  yandexMetrikaId: null as string | null,
+} as const;
+
+const DEMO_HOME_BENEFITS = [
+  {
+    id: 'seed_benefit_fresh',
+    title: 'Свежая выпечка',
+    description:
+      'Печём каждый день — к вашему столу без компромиссов по вкусу.',
+    icon: 'i-calendar',
+    sortOrder: 0,
+  },
+  {
+    id: 'seed_benefit_quality',
+    title: 'Качественные ингредиенты',
+    description:
+      'Отбираем муку, масло и начинки так, чтобы результат был стабильным.',
+    icon: 'i-star',
+    sortOrder: 1,
+  },
+  {
+    id: 'seed_benefit_order',
+    title: 'Удобный заказ',
+    description:
+      'Соберите корзину на сайте и оставьте заявку — мы подтвердим детали.',
+    icon: 'i-cart',
+    sortOrder: 2,
+  },
+  {
+    id: 'seed_benefit_delivery',
+    title: 'Самовывоз и доставка',
+    description:
+      'Заберите заказ у нас или договоритесь о доставке при оформлении.',
+    icon: 'i-delivery',
+    sortOrder: 3,
+  },
+] as const;
+
 async function main(): Promise<void> {
   const passwordHash = await hash(ADMIN_PASSWORD, BCRYPT_ROUNDS);
 
@@ -163,8 +230,81 @@ async function main(): Promise<void> {
     });
   }
 
+  await prisma.siteSettings.upsert({
+    where: { id: SITE_SETTINGS_ID },
+    create: { ...DEMO_SITE_SETTINGS },
+    update: {
+      siteName: DEMO_SITE_SETTINGS.siteName,
+      tagline: DEMO_SITE_SETTINGS.tagline,
+      description: DEMO_SITE_SETTINGS.description,
+      footerBlurb: DEMO_SITE_SETTINGS.footerBlurb,
+      logoUrl: DEMO_SITE_SETTINGS.logoUrl,
+      phone: DEMO_SITE_SETTINGS.phone,
+      email: DEMO_SITE_SETTINGS.email,
+      address: DEMO_SITE_SETTINGS.address,
+      workingHours: DEMO_SITE_SETTINGS.workingHours,
+      mapEnabled: DEMO_SITE_SETTINGS.mapEnabled,
+      mapEmbedUrl: DEMO_SITE_SETTINGS.mapEmbedUrl,
+      mapLinkUrl: DEMO_SITE_SETTINGS.mapLinkUrl,
+      legalOperatorName: DEMO_SITE_SETTINGS.legalOperatorName,
+      legalContactEmail: DEMO_SITE_SETTINGS.legalContactEmail,
+      seoMetaDescription: DEMO_SITE_SETTINGS.seoMetaDescription,
+      seoKeywords: DEMO_SITE_SETTINGS.seoKeywords,
+      seoRobotsIndex: DEMO_SITE_SETTINGS.seoRobotsIndex,
+      seoRobotsFollow: DEMO_SITE_SETTINGS.seoRobotsFollow,
+      seoOgTitle: DEMO_SITE_SETTINGS.seoOgTitle,
+      seoOgDescription: DEMO_SITE_SETTINGS.seoOgDescription,
+      seoOgImageUrl: DEMO_SITE_SETTINGS.seoOgImageUrl,
+      googleAnalyticsId: DEMO_SITE_SETTINGS.googleAnalyticsId,
+      yandexMetrikaId: DEMO_SITE_SETTINGS.yandexMetrikaId,
+    },
+  });
+
+  for (const benefit of DEMO_HOME_BENEFITS) {
+    await prisma.homeBenefit.upsert({
+      where: { id: benefit.id },
+      create: {
+        id: benefit.id,
+        title: benefit.title,
+        description: benefit.description,
+        icon: benefit.icon,
+        sortOrder: benefit.sortOrder,
+      },
+      update: {
+        title: benefit.title,
+        description: benefit.description,
+        icon: benefit.icon,
+        sortOrder: benefit.sortOrder,
+      },
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { SEED_LEGAL_PAGES } = require('../src/legal-pages/legal-pages.seed-data') as {
+    SEED_LEGAL_PAGES: Array<{
+      slug: string;
+      title: string;
+      sections: Prisma.InputJsonValue;
+    }>;
+  };
+
+  for (const page of SEED_LEGAL_PAGES) {
+    await prisma.legalPage.upsert({
+      where: { slug: page.slug },
+      create: {
+        slug: page.slug,
+        title: page.title,
+        sections: page.sections,
+      },
+      update: {
+        title: page.title,
+        sections: page.sections,
+      },
+    });
+  }
+
   console.log(
-    `Seed complete: admin "${ADMIN_USERNAME}", ${DEMO_PRODUCTS.length} products, ${DEMO_NEWS.length} news, ${DEMO_SOCIALS.length} socials.`,
+    `Seed complete: admin "${ADMIN_USERNAME}", ${DEMO_PRODUCTS.length} products, ${DEMO_NEWS.length} news, ${DEMO_SOCIALS.length} socials, site settings, ${DEMO_HOME_BENEFITS.length} home benefits, ${SEED_LEGAL_PAGES.length} legal pages.`,
   );
 }
 

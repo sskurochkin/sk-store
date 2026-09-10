@@ -9,6 +9,9 @@ import { NewsModule } from './news/news.module';
 import { OrdersModule } from './orders/orders.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductsModule } from './products/products.module';
+import { HomeBenefitsModule } from './home-benefits/home-benefits.module';
+import { LegalPagesModule } from './legal-pages/legal-pages.module';
+import { SettingsModule } from './settings/settings.module';
 import { SocialsModule } from './socials/socials.module';
 
 @Module({
@@ -22,6 +25,9 @@ import { SocialsModule } from './socials/socials.module';
     OrdersModule,
     ContactRequestsModule,
     SocialsModule,
+    SettingsModule,
+    HomeBenefitsModule,
+    LegalPagesModule,
     EmailModule,
   ],
   controllers: [HealthController],

@@ -1,4 +1,5 @@
 import {
+  COOKIE_CONSENT_CHANGED_EVENT,
   COOKIE_CONSENT_STORAGE_KEY,
   COOKIE_CONSENT_VERSION,
 } from "@/constants/cookie-consent";
@@ -85,6 +86,7 @@ export function saveCookieConsent(preferences: CookieConsentPreferences): void {
       COOKIE_CONSENT_STORAGE_KEY,
       JSON.stringify(preferences),
     );
+    window.dispatchEvent(new CustomEvent(COOKIE_CONSENT_CHANGED_EVENT));
   } catch {
     // Quota / private mode — consent stays in-memory for the session only.
   }

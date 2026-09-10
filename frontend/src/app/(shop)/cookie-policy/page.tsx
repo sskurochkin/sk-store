@@ -6,28 +6,39 @@ import { LegalDocument } from "@/components/legal/LegalDocument";
 import legalStyles from "@/components/legal/LegalDocument.module.css";
 import { Container } from "@/components/ui/Container/Container";
 import { COOKIE_POLICY_SECTIONS } from "@/constants/legal/cookie-policy-sections";
-import { SITE_NAME } from "@/constants/site";
 import { buildPageMetadata } from "@/lib/seo";
+import { resolveLegalPage } from "@/lib/resolve-legal-page";
+import { getSiteSettings } from "@/services/settings";
 import styles from "./page.module.css";
 
-export const metadata: Metadata = buildPageMetadata({
-  title: `Обработка файлов cookie | ${SITE_NAME}`,
-  description:
-    "Как SK Store использует cookie и localStorage, какие категории существуют и как изменить свой выбор.",
-  path: "/cookie-policy",
-  absoluteTitle: true,
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return buildPageMetadata({
+    title: `Обработка файлов cookie | ${settings.site.name}`,
+    description:
+      "Как сайт использует cookie и localStorage, какие категории существуют и как изменить свой выбор.",
+    path: "/cookie-policy",
+    absoluteTitle: true,
+    siteName: settings.site.name,
+  });
+}
 
-export default function CookiePolicyPage() {
+export default async function CookiePolicyPage() {
+  const legal = await resolveLegalPage({
+    slug: "cookie-policy",
+    fallbackTitle: "Обработка файлов cookie",
+    fallbackSections: COOKIE_POLICY_SECTIONS,
+  });
+
   return (
     <>
       <Container className={styles.breadcrumbsWrap}>
-        <Breadcrumbs items={[{ label: "Обработка файлов cookie" }]} />
+        <Breadcrumbs items={[{ label: legal.title }]} />
       </Container>
       <LegalDocument
-        title="Обработка файлов cookie"
+        title={legal.title}
         intro="На этой странице описаны категории cookie и аналогичных технологий, которые может использовать сайт, и способы управления вашим выбором."
-        sections={COOKIE_POLICY_SECTIONS}
+        sections={legal.sections}
         footer={
           <>
             <CookieSettingsButton variant="secondary">

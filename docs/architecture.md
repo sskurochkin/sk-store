@@ -202,9 +202,31 @@ After successful admin create/update/delete, client forms call authenticated Ser
 - Orders / contact-requests: no public cache tags
 - ISR `revalidate: 60` remains a fallback if a tag is missed
 
+### Site settings
+
+- `SiteSettings` singleton in PostgreSQL; public `GET /api/settings`, admin `PATCH /api/settings`
+- Frontend: `getSiteSettings()` merges API response with [`site-settings.defaults.ts`](../frontend/src/constants/site-settings.defaults.ts)
+- Used by Header, Footer, HomeHero, Contacts, page-level SEO
+- Admin hub: `/admin/settings` — general, contacts, map, socials, home benefits, legal pages
+- Cache tag: `settings` (revalidate on PATCH)
+- See [`docs/site-settings.md`](./site-settings.md)
+
+### Home benefits
+
+- `HomeBenefit` model; public `GET /api/home-benefits`; admin CRUD
+- `HomeBenefits` on `/` loads from API; fallback to constants if empty/error
+- Cache tag: `home-benefits`
+
+### Legal pages (CMS)
+
+- `LegalPage` model (`privacy-policy`, `cookie-policy`); public `GET /api/legal-pages/:slug`
+- Public pages use API content with fallback to constants; privacy placeholders from site settings
+- Admin: `/admin/settings/legal/[slug]`
+- Cache tags: `legal-page:{slug}`
+
 ### Legal pages and cookie consent
 
-- `/privacy-policy` — privacy policy template (14 sections); RSC + `LegalDocument`
+- `/privacy-policy` — privacy policy; RSC + `LegalDocument`
 - `/cookie-policy` — cookie/localStorage explanation; link to privacy policy + «Настройки cookie»
 - `CookieConsentBanner` in shop layout only; consent in `localStorage` key `sk-store:cookie-consent`
 - Categories: necessary (always on), functional, analytics, marketing — optional categories default off

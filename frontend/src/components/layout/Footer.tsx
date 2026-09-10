@@ -1,31 +1,31 @@
 import Link from "next/link";
 import { FooterCookieSettingsLink } from "@/components/layout/FooterCookieSettingsLink";
 import { SocialLinks } from "@/components/social/SocialLinks";
+import { SiteContactsDetails } from "@/components/site/SiteContactsDetails";
 import { Container } from "@/components/ui/Container/Container";
 import { Text } from "@/components/ui/Text/Text";
 import { FOOTER_LEGAL_LINKS } from "@/constants/legal-links";
 import { MAIN_NAV_LINKS } from "@/constants/navigation";
-import { SITE_NAME } from "@/constants/site";
+import { getSiteSettings } from "@/services/settings";
 import { getSocials } from "@/services/socials";
 import styles from "./Footer.module.css";
 
 export async function Footer() {
-  const socials = await getSocials();
+  const [socials, settings] = await Promise.all([getSocials(), getSiteSettings()]);
   const year = new Date().getFullYear();
 
   return (
     <footer className={styles.footer}>
       <Container className={styles.grid}>
         <div className={styles.brandBlock}>
-          <p className={styles.brand}>{SITE_NAME}</p>
-          <Text muted size="sm" className={styles.blurb}>
-            Пекарня и витрина заказов. Подробности появятся на страницах каталога
-            и контактов.
-          </Text>
-          <div className={styles.contactPlaceholder}>
-            <Text muted size="sm">
-              Контактная информация — скоро.
+          <p className={styles.brand}>{settings.site.name}</p>
+          {settings.site.footerBlurb ? (
+            <Text muted size="sm" className={styles.blurb}>
+              {settings.site.footerBlurb}
             </Text>
+          ) : null}
+          <div className={styles.contactPlaceholder}>
+            <SiteContactsDetails contacts={settings.contacts} variant="footer" />
           </div>
         </div>
 
@@ -68,7 +68,7 @@ export async function Footer() {
 
       <Container>
         <p className={styles.copy}>
-          © {year} {SITE_NAME}
+          © {year} {settings.site.name}
         </p>
       </Container>
     </footer>

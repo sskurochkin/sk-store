@@ -9,6 +9,9 @@ export const COOKIE_CONSENT_VERSION = "1";
 /** Custom event for reopening settings from Footer / cookie policy page. */
 export const COOKIE_CONSENT_OPEN_EVENT = "sk-store:open-cookie-settings";
 
+/** Dispatched in the browser after consent is saved or updated. */
+export const COOKIE_CONSENT_CHANGED_EVENT = "sk-store:cookie-consent-changed";
+
 export const COOKIE_CATEGORIES: CookieCategoryDefinition[] = [
   {
     id: "necessary",

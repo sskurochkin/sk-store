@@ -94,7 +94,51 @@ Create/update body fields:
 
 Errors: `400` validation, `401` unauthenticated write, `404` missing social.
 
-There is no separate Settings module in MVP — social networks are the initial settings scope. Admin UI: `/admin/settings` (list) and `/admin/settings/socials/new` | `/admin/settings/socials/:id/edit`.
+Admin UI: `/admin/settings` hub; socials at `/admin/settings/socials/new` | `/admin/settings/socials/:id/edit`.
+
+### Site settings
+
+Public:
+
+- `GET /api/settings` — singleton site settings (name, logo, contacts, map, legal placeholders, SEO, analytics IDs)
+
+Admin (HTTP-only auth cookie required):
+
+- `PATCH /api/settings` — partial update of the singleton row
+
+Fields: `siteName`, `tagline`, `description`, `footerBlurb`, `logoUrl`, `phone`, `email`, `address`, `workingHours`, `mapEnabled`, `mapEmbedUrl`, `mapLinkUrl`, `legalOperatorName`, `legalContactEmail`, `seoMetaDescription`, `seoKeywords`, `seoRobotsIndex`, `seoRobotsFollow`, `seoOgTitle`, `seoOgDescription`, `seoOgImageUrl`, `googleAnalyticsId`, `yandexMetrikaId`.
+
+Empty optional strings clear the field (`null`). URL fields must be `http` or `https`. Analytics IDs: GA4 `G-…` / UA `UA-…-…`, Yandex Metrika digits only.
+
+Admin UI: `/admin/settings/general`, `/admin/settings/seo`, `/admin/settings/contacts`, `/admin/settings/map`.
+
+### Home benefits
+
+Public:
+
+- `GET /api/home-benefits` — list ordered by `sortOrder` asc, then `title` asc
+
+Admin (JWT):
+
+- `POST /api/home-benefits` — create (`201`)
+- `PATCH /api/home-benefits/:id` — partial update
+- `DELETE /api/home-benefits/:id` — hard delete (`204`)
+
+Fields: `title`, `description`, `icon`, `sortOrder` (0–999).
+
+Admin UI: `/admin/settings` (list) + `/admin/settings/benefits/new` | `/admin/settings/benefits/:id/edit`.
+
+### Legal pages
+
+Public:
+
+- `GET /api/legal-pages/:slug` — `slug` is `privacy-policy` or `cookie-policy`
+
+Admin (JWT):
+
+- `PATCH /api/legal-pages/:slug` — update `title` and/or `sections` (structured JSON array)
+
+Admin UI: `/admin/settings/legal/privacy-policy`, `/admin/settings/legal/cookie-policy`.
 
 ### Orders
 

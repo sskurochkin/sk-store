@@ -3,10 +3,12 @@ import { Heading } from "@/components/ui/Heading/Heading";
 import { Icon } from "@/components/ui/icon/Icon";
 import { Section } from "@/components/ui/Section/Section";
 import { Text } from "@/components/ui/Text/Text";
-import { HOME_BENEFITS } from "@/constants/home-benefits";
+import { getHomeBenefits } from "@/services/home-benefits";
 import styles from "./HomeBenefits.module.css";
 
-export function HomeBenefits() {
+export async function HomeBenefits() {
+  const benefits = await getHomeBenefits();
+
   return (
     <Section
       spacing="lg"
@@ -19,12 +21,12 @@ export function HomeBenefits() {
             Почему выбирают нас
           </Heading>
           <Text muted>
-            Коротко о том, чем удобна пекарня SK Store — данные пока демонстрационные.
+            Коротко о том, чем удобна наша пекарня и заказ через сайт.
           </Text>
         </header>
 
         <ul className={styles.grid}>
-          {HOME_BENEFITS.map((benefit) => (
+          {benefits.map((benefit) => (
             <li key={benefit.id} className={styles.item}>
               <span className={styles.iconWrap}>
                 <Icon name={benefit.icon} className={styles.icon} />

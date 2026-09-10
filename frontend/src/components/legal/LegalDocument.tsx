@@ -1,4 +1,4 @@
-import type { LegalSection } from "@/constants/legal/privacy-policy-sections";
+import type { LegalSection } from "@/types/legal-page";
 import { Container } from "@/components/ui/Container/Container";
 import { Heading } from "@/components/ui/Heading/Heading";
 import { Section } from "@/components/ui/Section/Section";

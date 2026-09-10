@@ -1,7 +1,10 @@
 import {
+  homeBenefitsCacheTags,
+  legalPageCacheTags,
   newsCacheTags,
   productCacheTags,
   sanitizeAliases,
+  settingsCacheTags,
   socialsCacheTags,
 } from "./cache-tags";
 
@@ -32,5 +35,19 @@ assertEqual(
 );
 
 assertEqual(socialsCacheTags(), ["socials", "settings"], "socialsCacheTags");
+
+assertEqual(settingsCacheTags(), ["settings"], "settingsCacheTags");
+
+assertEqual(
+  homeBenefitsCacheTags(),
+  ["home-benefits"],
+  "homeBenefitsCacheTags",
+);
+
+assertEqual(
+  legalPageCacheTags(["privacy-policy", "cookie-policy"]),
+  ["legal-page:privacy-policy", "legal-page:cookie-policy"],
+  "legalPageCacheTags",
+);
 
 console.log("cache-tags checks passed");

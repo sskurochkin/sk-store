@@ -71,18 +71,26 @@ type CookieConsentPreferences = {
 | --- | --- | --- |
 | Necessary | always on | Site operation, security, navigation |
 | Functional | off | User preferences (e.g. cart uses separate `sk-store:cart` key today) |
-| Analytics | off | Category exists for future use; **no analytics scripts are loaded by consent alone** |
+| Analytics | off | Loads GA / Yandex Metrika when IDs are set in site SEO settings **and** user consents |
 | Marketing | off | Category exists for future use; **no marketing scripts are loaded by consent alone** |
+
+## Analytics (GA / Yandex Metrika)
+
+When `googleAnalyticsId` or `yandexMetrikaId` is set in site settings (`/admin/settings/seo`):
+
+- Component: `frontend/src/components/site/SiteAnalytics.tsx`
+- Mounted in `(shop)/layout.tsx` only when at least one ID is configured
+- Scripts load **after** `hasAnalyticsConsent()` is true
+- Client navigations send additional page views via `frontend/src/lib/site-analytics.ts`
+- Consent changes dispatch `COOKIE_CONSENT_CHANGED_EVENT` so scripts mount/unmount without reload
 
 ## Future integrations
 
-Before loading any optional third-party script (analytics, ads, etc.):
+Before loading any optional third-party script (marketing, etc.):
 
 1. Read consent with `loadCookieConsent()` (client only)
-2. Check the relevant helper, e.g. `hasAnalyticsConsent()` / `hasMarketingConsent()`
+2. Check the relevant helper, e.g. `hasMarketingConsent()`
 3. Load the integration only if consent is granted
-
-Consent storage is a **permission flag only** — it must not create third-party cookies by itself.
 
 ## Auth separation
 
