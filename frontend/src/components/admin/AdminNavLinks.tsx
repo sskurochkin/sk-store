@@ -3,6 +3,7 @@
 import clsx from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Icon } from "@/components/ui/icon/Icon";
 import { ADMIN_NAV_ITEMS } from "@/constants/admin-navigation";
 import styles from "./AdminNavLinks.module.css";
 
@@ -34,7 +35,10 @@ export function AdminNavLinks({ onNavigate, className }: AdminNavLinksProps) {
                 aria-disabled="true"
                 title="Раздел будет доступен в следующих фазах"
               >
-                <span>{item.label}</span>
+                <span className={styles.linkMain}>
+                  <Icon name={item.icon} className={styles.navIcon} />
+                  <span>{item.label}</span>
+                </span>
                 <span className={styles.badge}>скоро</span>
               </span>
             </li>
@@ -49,7 +53,10 @@ export function AdminNavLinks({ onNavigate, className }: AdminNavLinksProps) {
               aria-current={active ? "page" : undefined}
               onClick={onNavigate}
             >
-              <span>{item.label}</span>
+              <span className={styles.linkMain}>
+                <Icon name={item.icon} className={styles.navIcon} />
+                <span>{item.label}</span>
+              </span>
             </Link>
           </li>
         );

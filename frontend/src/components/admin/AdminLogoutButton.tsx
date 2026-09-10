@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button/Button";
 import { logout } from "@/services/auth";
 import { ApiError } from "@/services/api";
 import styles from "./AdminLogoutButton.module.css";
+import { Icon } from "../ui/icon/Icon";
 
 export function AdminLogoutButton() {
   const router = useRouter();
@@ -43,7 +44,8 @@ export function AdminLogoutButton() {
         disabled={pending}
         onClick={onLogout}
       >
-        {pending ? "Выход…" : "Выйти"}
+        <Icon name="i-logout" />
+        {/* {pending ? "Выход…" : "Выйти"} */}
       </Button>
     </div>
   );

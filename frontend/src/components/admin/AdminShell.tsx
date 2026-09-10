@@ -5,6 +5,7 @@ import { AdminNavLinks } from "@/components/admin/AdminNavLinks";
 import { SITE_NAME } from "@/constants/site";
 import type { AuthUser } from "@/types/auth";
 import styles from "./AdminShell.module.css";
+import { Icon } from "../ui/icon/Icon";
 
 type AdminShellProps = {
   user: AuthUser;
@@ -35,7 +36,7 @@ export function AdminShell({ user, children }: AdminShellProps) {
           </div>
           <div className={styles.topbarEnd}>
             <Link href="/" className={styles.topbarSiteLink}>
-              На сайт
+              <Icon name="i-home" />
             </Link>
             <p className={styles.user}>
               <span className={styles.userLabel}>Пользователь</span>

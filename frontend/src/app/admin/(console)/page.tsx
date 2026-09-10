@@ -25,7 +25,7 @@ export default async function AdminDashboardPage() {
               , <strong>{user.username}</strong>
             </>
           ) : null}
-          . Это фундамент админ-панели — разделы появятся в следующих фазах.
+          .
         </Text>
       </header>
 
