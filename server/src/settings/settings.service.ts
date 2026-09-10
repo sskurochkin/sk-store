@@ -63,11 +63,7 @@ export class SettingsService {
     this.assignOptionalString(data, 'mapEmbedUrl', dto.mapEmbedUrl);
     this.assignOptionalString(data, 'mapLinkUrl', dto.mapLinkUrl);
     this.assignOptionalString(data, 'legalOperatorName', dto.legalOperatorName);
-    this.assignOptionalEmail(
-      data,
-      'legalContactEmail',
-      dto.legalContactEmail,
-    );
+    this.assignOptionalEmail(data, 'legalContactEmail', dto.legalContactEmail);
     this.assignOptionalString(
       data,
       'seoMetaDescription',
@@ -77,11 +73,7 @@ export class SettingsService {
     this.assignOptionalString(data, 'seoOgTitle', dto.seoOgTitle);
     this.assignOptionalString(data, 'seoOgDescription', dto.seoOgDescription);
     this.assignOptionalString(data, 'seoOgImageUrl', dto.seoOgImageUrl);
-    this.assignOptionalString(
-      data,
-      'googleAnalyticsId',
-      dto.googleAnalyticsId,
-    );
+    this.assignOptionalString(data, 'googleAnalyticsId', dto.googleAnalyticsId);
     this.assignOptionalString(data, 'yandexMetrikaId', dto.yandexMetrikaId);
 
     const item = await this.prisma.siteSettings.update({

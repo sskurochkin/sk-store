@@ -52,26 +52,76 @@ Browser API calls use same-origin `/api/*` (Next.js rewrite → NestJS). `NEXT_P
 cd frontend && npm run typecheck && npm run lint && npm run build
 
 # server
-cd server && npm run typecheck && npm run lint && npm run build
-# optional: npm test / npm run test:e2e
+cd server && npm run typecheck && npm run lint && npm run build && npm test
+# optional: npm run test:e2e
 ```
+
+## Production
+
+### Build
+
+```bash
+cd server && npm run build
+cd frontend && npm run build
+```
+
+### Environment
+
+Copy and fill env files from root `.env.example` (see `server/.env.example` for the API).
+
+**Required in production (`NODE_ENV=production` on the server):**
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `JWT_SECRET` | Long random signing secret |
+| `CORS_ORIGIN` | Exact public frontend origin (e.g. `https://shop.example.com`) |
+| `SMTP_HOST` | SMTP server hostname |
+| `MAIL_FROM` | From address for order emails |
+| `ORDER_NOTIFICATION_EMAIL` | Business inbox for new orders |
+
+Also set on the frontend: `NEXT_PUBLIC_SITE_URL` (public origin) and `NEXT_PUBLIC_API_URL` (Nest origin for rewrites/server fetches).
+
+Defaults: `COOKIE_SECURE=true`, login/public-write rate limits enabled. See `docs/security.md`.
+
+### Database (production)
+
+```bash
+cd server
+npx prisma migrate deploy   # not migrate dev
+# seed only for bootstrap / fresh environments:
+# npx prisma db seed
+```
+
+Seed is **not** run automatically on `start:prod`.
+
+### Start
+
+```bash
+# terminal 1 — API
+cd server && npm run start:prod
+
+# terminal 2 — frontend
+cd frontend && npm run start
+```
+
+Verify: `GET /api/health` (via Next rewrite or directly on the Nest port).
 
 ## Phase status
 
-**Completed through Phase 25 — Security Review.**
-
-Next: **Phase 26 — Testing**, then **Phase 27 — Production Readiness**.
+**Completed through Phase 27 — Production Readiness.**
 
 | Phases | Status | What landed |
 | --- | --- | --- |
 | 0–3 | Done | Repo split, Prisma/PostgreSQL, Nest foundation |
 | 4–9 | Done | Auth (HTTP-only JWT cookie), Products/News/Socials/Orders APIs, EmailService |
 | 10–16 | Done | Public design system, layout, products, cart, checkout, news, contacts + contact requests |
-| 17–22 | Done | Admin shell + Products / News / Orders / Contact Requests / Settings (socials) |
+| 17–22 | Done | Admin shell + Products / News / Orders / Contact Requests / Settings |
 | 23 | Done | Cache tag revalidation after admin mutations |
 | 24 | Done | Metadata, Open Graph, canonical URLs, `next/image` remote hosts |
 | 25 | Done | CORS hardening, login/public-write rate limits, security checklist (`docs/security.md`) |
-| 26–27 | Pending | Broader test suite / E2E; production deploy docs & ops |
+| 26 | Done | Unit + E2E tests (auth, orders, contact requests, products, health, …) |
+| 27 | Done | Production build/start verification, env/secrets audit, deployment docs |
 
 ### Public site
 
@@ -83,7 +133,7 @@ Routes: `/`, `/products`, `/products/[alias]`, `/news`, `/news/[alias]`, `/conta
 
 ### Admin
 
-Routes: `/admin/login`, `/admin` dashboard, Products, News, Orders, Contact Requests, Settings (socials).
+Routes: `/admin/login`, `/admin` dashboard, Products, News, Orders, Contact Requests, Settings (general, contacts, map, SEO, socials, legal pages, home benefits).
 
 - Cookie auth on the Next origin; middleware + layout guard for `/admin/*`
 - List tables: page size `ADMIN_TABLE_PAGE_SIZE` (default 3); orders/contact-requests support column sorting; deletes use a confirmation modal

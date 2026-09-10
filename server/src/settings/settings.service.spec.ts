@@ -138,7 +138,8 @@ describe('SettingsService', () => {
     prisma.siteSettings.update.mockResolvedValue({
       ...sampleSettings,
       mapEnabled: true,
-      mapEmbedUrl: 'https://yandex.ru/map-widget/v1/?z=12&ol=biz&oid=178906170146',
+      mapEmbedUrl:
+        'https://yandex.ru/map-widget/v1/?z=12&ol=biz&oid=178906170146',
       mapLinkUrl: null,
     });
 
