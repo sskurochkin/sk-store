@@ -1,111 +1,261 @@
 # Deployment
 
-## Architecture
+## Architectures
+
+### Development (host PostgreSQL)
 
 ```text
-Browser → Next.js (frontend) → /api/* rewrite → NestJS (server) → PostgreSQL
+Browser → Next.js :3000 → /api/* rewrite → NestJS :3001 → PostgreSQL (host)
 ```
 
-PostgreSQL runs on the host (or managed service). **Docker Compose does not provision PostgreSQL** — see root `docker-compose.yml`.
+See root `README.md` for local setup without Docker.
 
-Local development:
+### Production (Docker)
 
-- PostgreSQL on the host
-- `server` on port 3001
-- `frontend` on port 3000
+```text
+Internet
+   ↓
+Reverse Proxy (Nginx) — HTTPS
+   ↓
+frontend :3000 (Docker)
+   ↓ /api/* rewrite
+backend :3001 (Docker, internal)
+   ↓
+postgres :5432 (Docker, internal + persistent volume)
+```
+
+Files:
+
+| File | Purpose |
+| --- | --- |
+| `docker-compose.prod.yml` | Production stack |
+| `server/Dockerfile` | NestJS multi-stage image |
+| `frontend/Dockerfile` | Next.js standalone image |
+| `.env.production.example` | Production env template (copy to server) |
+| `deploy/nginx/sk-store.conf.example` | HTTPS reverse proxy example |
+
+**Do not use `docker compose down -v`** in normal operations — `-v` deletes the `postgres_data` volume.
+
+---
+
+## Production Docker workflow
+
+### 1. Clone and configure
+
+```bash
+git clone <repository-url> /opt/sk-store
+cd /opt/sk-store
+cp .env.production.example .env.production
+chmod 600 .env.production
+```
+
+Edit `.env.production`:
+
+- Set strong `POSTGRES_PASSWORD`, `JWT_SECRET`
+- Set `NEXT_PUBLIC_SITE_URL` and `CORS_ORIGIN` to `https://YOUR_DOMAIN`
+- Configure SMTP variables
+- Keep `COOKIE_SECURE=true` (requires HTTPS via reverse proxy)
+
+### 2. Build images
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.production build
+```
+
+Rebuild after code changes or when `NEXT_PUBLIC_*` build args change.
+
+### 3. Start PostgreSQL
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d postgres
+```
+
+Wait until healthy:
+
+```bash
+docker compose -f docker-compose.prod.yml ps postgres
+```
+
+### 4. Run migrations
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
+```
+
+Use `migrate deploy` — **not** `migrate dev`, `db push`, or `migrate reset`.
+
+### 5. Bootstrap seed (first deploy only)
+
+Production image ships a compiled seed script (no `ts-node` in runtime):
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend node dist/prisma/seed.js
+```
+
+Creates bootstrap admin `admin` / `admin123`. **Change this password before public go-live.**
+
+Seed is **not** run automatically on `up`. Local dev can still use `npx prisma db seed` with `ts-node`.
+
+### 6. Start application
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+```
+
+### 7. Configure reverse proxy + HTTPS
+
+See `deploy/nginx/sk-store.conf.example`. Proxy to `127.0.0.1:3000` (frontend).
+
+Backend (`3001`) and PostgreSQL (`5432`) must **not** be published to the Internet.
+
+### 8. Verify
+
+```bash
+curl -s https://YOUR_DOMAIN/api/health
+curl -s -o /dev/null -w "%{http_code}" https://YOUR_DOMAIN/
+```
+
+---
+
+## Operations
+
+### Start
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+```
+
+### Stop
+
+```bash
+docker compose -f docker-compose.prod.yml down
+```
+
+Data persists in `postgres_data` volume.
+
+### Restart
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.production restart
+```
+
+### Logs
+
+```bash
+docker compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.prod.yml logs -f frontend
+docker compose -f docker-compose.prod.yml logs -f postgres
+```
+
+### Migration (update deploy)
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d backend frontend
+```
+
+### Backup
+
+```bash
+docker compose -f docker-compose.prod.yml exec postgres \
+  pg_dump -U skstore_app -d skstore --no-owner --format=custom \
+  > skstore-$(date +%Y%m%d-%H%M%S).dump
+```
+
+Store backups **outside** the Docker volume (server backup dir / external storage).
+
+### Restore
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T postgres \
+  pg_restore -U skstore_app -d skstore --clean --if-exists < backup.dump
+```
+
+Test restore on a non-production database first.
+
+### Update deployment
+
+```bash
+git pull
+docker compose -f docker-compose.prod.yml --env-file .env.production build
+docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+```
+
+### Rollback
+
+1. Check out previous Git tag/commit.
+2. Rebuild images.
+3. Restore database backup if schema/data rollback is required.
+4. `docker compose ... up -d`
+
+Prisma migrations are forward-only — plan rollbacks with backups.
+
+---
+
+## Environment variables
+
+### PostgreSQL (Compose)
+
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `POSTGRES_DB` | `skstore` | Database name |
+| `POSTGRES_USER` | `skstore_app` | Application user |
+| `POSTGRES_PASSWORD` | **required** | Never commit |
+
+`DATABASE_URL` is composed automatically for the backend service:
+
+```text
+postgresql://skstore_app:<password>@postgres:5432/skstore?schema=public
+```
+
+### Backend — required in production
+
+| Variable | Notes |
+| --- | --- |
+| `JWT_SECRET` | Long random secret |
+| `CORS_ORIGIN` | Exact public frontend origin (`https://YOUR_DOMAIN`) |
+| `SMTP_HOST` | SMTP server |
+| `MAIL_FROM` | From address |
+| `ORDER_NOTIFICATION_EMAIL` | Business inbox |
+
+### Backend — defaults
+
+| Variable | Default |
+| --- | --- |
+| `PORT` | `3001` |
+| `COOKIE_SECURE` | `true` |
+| `COOKIE_SAME_SITE` | `lax` |
+| `AUTH_LOGIN_RATE_*` | `5` / `60000` |
+| `PUBLIC_WRITE_RATE_*` | `5` / `60000` |
+
+### Frontend — build-time (`NEXT_PUBLIC_*`)
+
+Set in `.env.production` before `docker compose build`:
+
+| Variable | Docker value | Notes |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | `https://YOUR_DOMAIN` | Metadata / OG / canonical |
+| `NEXT_PUBLIC_API_URL` | `http://backend:3001` | **Internal** — rewrites + server/middleware fetches only |
+| `NEXT_PUBLIC_IMAGE_REMOTE_HOSTS` | optional | `next/image` hostnames |
+
+Browser code uses same-origin `/api/*`. Never expose `postgres` or internal Docker hostnames to browsers.
+
+---
 
 ## Development setup
 
 See root `README.md` for install, migrate, seed, and dev start commands.
 
-## Production build
-
-Set frontend public env **before** `next build` — `NEXT_PUBLIC_*` values are embedded at build time (changing them at `next start` alone is not enough).
-
-```bash
-cd server && npm install && npx prisma generate && npm run build
-cd frontend && npm install && npm run build
-```
-
-## Production database
-
-On a clean PostgreSQL database:
-
-```bash
-cd server
-npx prisma migrate deploy
-```
-
-Use `prisma migrate deploy` in production — **not** `prisma migrate dev`.
-
-`npx prisma db seed` is for bootstrap/dev only. It is **not** invoked by `npm run start:prod`.
-
-## Production start
-
-```bash
-# API (requires production env — see below)
-cd server && npm run start:prod
-
-# Frontend (separate process)
-cd frontend && npm run start
-```
-
-Health check: `GET /api/health` (same-origin through Next, or directly on the Nest port).
-
-## Environment variables
-
-Documented in root `.env.example` and `server/.env.example`.
-
-### Server — required in production (`NODE_ENV=production`)
-
-| Variable | Notes |
-| --- | --- |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `JWT_SECRET` | Long random secret |
-| `CORS_ORIGIN` | Exact frontend origin (no `*`) |
-| `SMTP_HOST` | Real SMTP host (empty allowed in dev only) |
-| `MAIL_FROM` | From address |
-| `ORDER_NOTIFICATION_EMAIL` | Business notification inbox |
-
-### Server — recommended / defaults
-
-| Variable | Default / notes |
-| --- | --- |
-| `PORT` | `3001` |
-| `COOKIE_SECURE` | `true` in production |
-| `COOKIE_SAME_SITE` | `lax` |
-| `AUTH_LOGIN_RATE_LIMIT` / `AUTH_LOGIN_RATE_TTL_MS` | `5` / `60000` |
-| `PUBLIC_WRITE_RATE_LIMIT` / `PUBLIC_WRITE_RATE_TTL_MS` | `5` / `60000` |
-
-### Frontend
-
-| Variable | Notes |
-| --- | --- |
-| `NEXT_PUBLIC_API_URL` | Nest origin for rewrites and server-side fetches (not exposed to browser fetches — use `/api/*`) |
-| `NEXT_PUBLIC_SITE_URL` | Public site origin for metadata/OG/canonical (no trailing slash) |
-| `NEXT_PUBLIC_IMAGE_REMOTE_HOSTS` | Optional comma-separated hostnames for `next/image` |
-
-Never put secrets in `NEXT_PUBLIC_*`.
-
-## Frontend public URL (SEO)
-
-Set `NEXT_PUBLIC_SITE_URL` in `frontend/.env.local` (documented in root `.env.example`).
-
-- Local default / fallback: `http://localhost:3000`
-- Production: the real public origin (no trailing slash), e.g. `https://shop.example.com`
-
-Used for Next.js `metadataBase`, Open Graph absolute URLs, and canonical links.
-
-Optional: `NEXT_PUBLIC_IMAGE_REMOTE_HOSTS` — comma-separated hostnames allowed by `next/image` (in addition to `example.com` from seed/demo data).
-
 ## Production security checklist
 
-See [`docs/security.md`](./security.md) for the full matrix. Minimum before production:
+See [`docs/security.md`](./security.md). Minimum before public production:
 
-- Strong `JWT_SECRET` (not the example placeholder)
-- `COOKIE_SECURE=true`
-- Explicit `CORS_ORIGIN` matching the frontend origin (required when `NODE_ENV=production`)
-- Change seed admin credentials (`admin` / `admin123` are bootstrap-only)
-- Configure real SMTP + `MAIL_FROM` + `ORDER_NOTIFICATION_EMAIL`
-- Configure `AUTH_LOGIN_RATE_*` and `PUBLIC_WRITE_RATE_*`
-- Never commit `.env` / `.env.local`
+- Strong `JWT_SECRET` and `POSTGRES_PASSWORD`
+- `COOKIE_SECURE=true` with HTTPS
+- Explicit `CORS_ORIGIN` matching public origin
+- Change seed admin credentials
+- Configure real SMTP
+- Never commit `.env.production`
+- PostgreSQL and backend not publicly exposed

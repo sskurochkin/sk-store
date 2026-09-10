@@ -51,6 +51,7 @@ function buildImageRemotePatterns(): RemotePattern[] {
 }
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   images: {
     remotePatterns: buildImageRemotePatterns(),
   },

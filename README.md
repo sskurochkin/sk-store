@@ -9,12 +9,21 @@ Bakery showcase and ordering website.
 - `docs` — architecture, API, auth, database, deployment, security
 - `development_plan.md` — product/architecture source of truth
 
-PostgreSQL is expected to run locally on the host. Docker Compose does **not** create a PostgreSQL container.
+**Development:** PostgreSQL on the host (see Setup below).
+
+**Production:** Docker stack in `docker-compose.prod.yml` (frontend + backend + PostgreSQL). See [Production Docker](#production-docker).
 
 ## Prerequisites
 
+### Development
+
 - Node.js 20+
 - PostgreSQL with a database matching `DATABASE_URL`
+
+### Production (Docker)
+
+- Docker Engine + Docker Compose v2
+- Reverse proxy with HTTPS (Nginx example in `deploy/nginx/`)
 
 ## Setup
 
@@ -107,9 +116,32 @@ cd frontend && npm run start
 
 Verify: `GET /api/health` (via Next rewrite or directly on the Nest port).
 
+## Production Docker
+
+Recommended production deployment uses Docker:
+
+```text
+Internet → Nginx (HTTPS) → frontend → backend → postgres
+```
+
+Quick start on server:
+
+```bash
+cp .env.production.example .env.production   # edit secrets + YOUR_DOMAIN
+docker compose -f docker-compose.prod.yml --env-file .env.production build
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d postgres
+docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
+docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend node dist/prisma/seed.js   # first deploy only
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+```
+
+Full workflow (backup, rollback, logs): `docs/deployment.md`.
+
+**Warning:** `docker compose down -v` deletes the database volume.
+
 ## Phase status
 
-**Completed through Phase 27 — Production Readiness.**
+**Completed through Phase 28 — Production Docker Preparation.**
 
 | Phases | Status | What landed |
 | --- | --- | --- |
@@ -122,6 +154,7 @@ Verify: `GET /api/health` (via Next rewrite or directly on the Nest port).
 | 25 | Done | CORS hardening, login/public-write rate limits, security checklist (`docs/security.md`) |
 | 26 | Done | Unit + E2E tests (auth, orders, contact requests, products, health, …) |
 | 27 | Done | Production build/start verification, env/secrets audit, deployment docs |
+| 28 | Done | Production Dockerfiles, `docker-compose.prod.yml`, PostgreSQL volume, Nginx example |
 
 ### Public site
 

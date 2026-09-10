@@ -1,0 +1,115 @@
+# SK Store — production Docker Compose
+# Usage:
+#   cp .env.production.example .env.production   # on server only — never commit
+#   docker compose -f docker-compose.prod.yml build
+#   docker compose -f docker-compose.prod.yml run --rm backend npx prisma migrate deploy
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# WARNING: `docker compose down -v` deletes the postgres_data volume.
+
+name: sk-store-prod
+
+services:
+  postgres:
+    image: postgres:16.4-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-skstore}
+      POSTGRES_USER: ${POSTGRES_USER:-skstore_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - skstore_network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-skstore_app} -d ${POSTGRES_DB:-skstore}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-skstore_app}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-skstore}?schema=public
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+      AUTH_COOKIE_NAME: ${AUTH_COOKIE_NAME:-access_token}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      COOKIE_SAME_SITE: ${COOKIE_SAME_SITE:-lax}
+      COOKIE_MAX_AGE_MS: ${COOKIE_MAX_AGE_MS:-86400000}
+      CORS_ORIGIN: ${CORS_ORIGIN:?CORS_ORIGIN is required}
+      CORS_CREDENTIALS: ${CORS_CREDENTIALS:-true}
+      AUTH_LOGIN_RATE_LIMIT: ${AUTH_LOGIN_RATE_LIMIT:-5}
+      AUTH_LOGIN_RATE_TTL_MS: ${AUTH_LOGIN_RATE_TTL_MS:-60000}
+      PUBLIC_WRITE_RATE_LIMIT: ${PUBLIC_WRITE_RATE_LIMIT:-5}
+      PUBLIC_WRITE_RATE_TTL_MS: ${PUBLIC_WRITE_RATE_TTL_MS:-60000}
+      SMTP_HOST: ${SMTP_HOST:?SMTP_HOST is required}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      MAIL_FROM: ${MAIL_FROM:?MAIL_FROM is required}
+      ORDER_NOTIFICATION_EMAIL: ${ORDER_NOTIFICATION_EMAIL:?ORDER_NOTIFICATION_EMAIL is required}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - skstore_network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3001/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://backend:3001
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL is required}
+        NEXT_PUBLIC_IMAGE_REMOTE_HOSTS: ${NEXT_PUBLIC_IMAGE_REMOTE_HOSTS:-}
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PUBLISH_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - skstore_network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  skstore_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
