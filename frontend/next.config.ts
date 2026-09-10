@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
+/** Server-only Nest origin for rewrites (not exposed via NEXT_PUBLIC_*). */
 const nestOrigin =
+  process.env.API_INTERNAL_URL?.replace(/\/$/, "") ||
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
   "http://localhost:3001";
 

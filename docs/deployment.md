@@ -15,14 +15,16 @@ See root `README.md` for local setup without Docker.
 ```text
 Internet
    ↓
-Reverse Proxy (Nginx) — HTTPS
+Nginx (host) :443 HTTPS
    ↓
-frontend :3000 (Docker)
-   ↓ /api/* rewrite
-backend :3001 (Docker, internal)
+127.0.0.1:3000 → frontend container
+   ↓ /api/* rewrite (API_INTERNAL_URL → backend:3001)
+backend :3001 (Docker internal)
    ↓
-postgres :5432 (Docker, internal + persistent volume)
+postgres :5432 (Docker internal + postgres_data volume)
 ```
+
+Frontend binds to **localhost only** on the host. Ports `3001` and `5432` are not published.
 
 Files:
 
@@ -51,10 +53,10 @@ chmod 600 .env.production
 
 Edit `.env.production`:
 
-- Set strong `POSTGRES_PASSWORD`, `JWT_SECRET`
+- Set strong `POSTGRES_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD` (min 12 chars, not `admin123`)
 - Set `NEXT_PUBLIC_SITE_URL` and `CORS_ORIGIN` to `https://YOUR_DOMAIN`
 - Configure SMTP variables
-- Keep `COOKIE_SECURE=true` (requires HTTPS via reverse proxy)
+- Keep `COOKIE_SECURE=true` (requires HTTPS via reverse proxy — do not launch publicly with `false`)
 
 ### 2. Build images
 
@@ -62,7 +64,7 @@ Edit `.env.production`:
 docker compose -f docker-compose.prod.yml --env-file .env.production build
 ```
 
-Rebuild after code changes or when `NEXT_PUBLIC_*` build args change.
+Rebuild after code changes or when `NEXT_PUBLIC_SITE_URL` / image host build args change.
 
 ### 3. Start PostgreSQL
 
@@ -92,9 +94,9 @@ Production image ships a compiled seed script (no `ts-node` in runtime):
 docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend node dist/prisma/seed.js
 ```
 
-Creates bootstrap admin `admin` / `admin123`. **Change this password before public go-live.**
+Creates admin from `ADMIN_USERNAME` / `ADMIN_PASSWORD` in `.env.production`. Production seed **rejects** `admin123` and passwords shorter than 12 characters. Demo products/news (`example.com` images) are **not** seeded in production — add catalog via admin after deploy.
 
-Seed is **not** run automatically on `up`. Local dev can still use `npx prisma db seed` with `ts-node`.
+Seed is **not** run automatically on `up`. Local dev can still use `npx prisma db seed` with `ts-node` (defaults to `admin` / `admin123`).
 
 ### 6. Start application
 
@@ -176,12 +178,20 @@ Test restore on a non-production database first.
 
 ### Update deployment
 
+1. **Backup database first** (see Backup above).
+2. Pull code and review new migrations.
+3. Build and migrate:
+
 ```bash
 git pull
 docker compose -f docker-compose.prod.yml --env-file .env.production build
 docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
 docker compose -f docker-compose.prod.yml --env-file .env.production up -d
 ```
+
+4. Smoke test public pages + admin login.
+
+Never run `docker compose down -v` during updates.
 
 ### Rollback
 
@@ -230,17 +240,137 @@ postgresql://skstore_app:<password>@postgres:5432/skstore?schema=public
 | `AUTH_LOGIN_RATE_*` | `5` / `60000` |
 | `PUBLIC_WRITE_RATE_*` | `5` / `60000` |
 
-### Frontend — build-time (`NEXT_PUBLIC_*`)
+### Admin bootstrap (production seed)
+
+| Variable | Notes |
+| --- | --- |
+| `ADMIN_USERNAME` | default `admin` |
+| `ADMIN_PASSWORD` | **required** for production seed; min 12 chars; never `admin123` |
+
+### Frontend — build-time
 
 Set in `.env.production` before `docker compose build`:
 
-| Variable | Docker value | Notes |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | `https://YOUR_DOMAIN` | Metadata / OG / canonical |
-| `NEXT_PUBLIC_API_URL` | `http://backend:3001` | **Internal** — rewrites + server/middleware fetches only |
-| `NEXT_PUBLIC_IMAGE_REMOTE_HOSTS` | optional | `next/image` hostnames |
+| Variable | Notes |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | `https://YOUR_DOMAIN` — metadata / OG / canonical |
+| `NEXT_PUBLIC_IMAGE_REMOTE_HOSTS` | optional — `next/image` hostnames |
+
+`API_INTERNAL_URL=http://backend:3001` is set in `docker-compose.prod.yml` build args (server-only, not in client bundle).
 
 Browser code uses same-origin `/api/*`. Never expose `postgres` or internal Docker hostnames to browsers.
+
+---
+
+## DNS
+
+Before HTTPS and public launch:
+
+- [ ] **A record** → server IPv4 for `YOUR_DOMAIN`
+- [ ] **AAAA record** → correct IPv6 **or remove** if IPv6 is not configured on the server
+- [ ] Propagation verified (`dig YOUR_DOMAIN`)
+
+---
+
+## Server firewall
+
+Allow publicly:
+
+| Port | Purpose |
+| --- | --- |
+| `80/tcp` | HTTP → HTTPS redirect, ACME |
+| `443/tcp` | HTTPS |
+| `22/tcp` | SSH (restrict to admin IPs when possible) |
+
+Do **not** expose publicly:
+
+| Port | Reason |
+| --- | --- |
+| `3000` | Frontend — localhost + Nginx only |
+| `3001` | Backend — Docker internal |
+| `5432` | PostgreSQL — Docker internal |
+
+Do not rely on Docker port binding alone — configure `ufw` / cloud security groups.
+
+---
+
+## HTTPS (Let's Encrypt)
+
+After Nginx is configured and DNS resolves:
+
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d YOUR_DOMAIN
+```
+
+Verify:
+
+- HTTP redirects to HTTPS
+- `COOKIE_SECURE=true` in `.env.production`
+- Admin login works over HTTPS
+- Auth cookie has `Secure` and `HttpOnly` flags
+
+Renewal: certbot timer (usually automatic via `certbot renew`).
+
+---
+
+## Docker logs
+
+Production Compose configures JSON log rotation (`max-size: 10m`, `max-file: 5`) per service.
+
+Monitor disk usage: `docker system df`.
+
+---
+
+## PostgreSQL persistence
+
+Volume `postgres_data` survives:
+
+- `docker compose restart`
+- `docker compose down` (without `-v`)
+- container rebuilds
+
+**Never run `docker compose down -v`** in normal deployment — it deletes the database volume.
+
+---
+
+## Production launch checklist
+
+### Before deployment
+
+- [ ] Domain DNS configured (A / AAAA verified)
+- [ ] Server firewall: only 80, 443, 22 (SSH restricted if possible)
+- [ ] Docker + Compose v2 installed
+- [ ] `.env.production` created on server (`chmod 600`)
+- [ ] Strong secrets generated (`POSTGRES_PASSWORD`, `JWT_SECRET`, `ADMIN_PASSWORD`, SMTP)
+- [ ] `ADMIN_PASSWORD` is not `admin123`
+- [ ] SMTP configured and tested
+- [ ] Real product/news images ready (production seed skips demo catalog)
+- [ ] Legal pages reviewed by operator
+
+### Deployment
+
+- [ ] `git clone` to `/opt/sk-store` (or chosen path)
+- [ ] Docker images built with `--env-file .env.production`
+- [ ] PostgreSQL healthy
+- [ ] `prisma migrate deploy` applied
+- [ ] Production seed completed (`node dist/prisma/seed.js`)
+- [ ] Backend + frontend healthy
+- [ ] Nginx configured (`deploy/nginx/sk-store.conf.example`)
+- [ ] HTTPS active (Let's Encrypt)
+
+### Verification
+
+- [ ] Public pages: `/`, `/products`, `/news`, `/contacts`, legal pages
+- [ ] Admin login with production credentials
+- [ ] Cart + order creation (server-side totals)
+- [ ] Contact form submission
+- [ ] Email delivery (if SMTP configured)
+- [ ] `docker compose restart` — data persists
+- [ ] First database backup created
+- [ ] Ports 3001/5432 not reachable from Internet
+- [ ] Port 3000 not reachable from Internet (only localhost)
+- [ ] `/admin` and `/api` disallowed in robots.txt
 
 ---
 
@@ -255,7 +385,7 @@ See [`docs/security.md`](./security.md). Minimum before public production:
 - Strong `JWT_SECRET` and `POSTGRES_PASSWORD`
 - `COOKIE_SECURE=true` with HTTPS
 - Explicit `CORS_ORIGIN` matching public origin
-- Change seed admin credentials
+- Strong `ADMIN_PASSWORD` in `.env.production` (production seed enforces this)
 - Configure real SMTP
 - Never commit `.env.production`
 - PostgreSQL and backend not publicly exposed

@@ -121,7 +121,7 @@ Verify: `GET /api/health` (via Next rewrite or directly on the Nest port).
 Recommended production deployment uses Docker:
 
 ```text
-Internet → Nginx (HTTPS) → frontend → backend → postgres
+Internet → Nginx (HTTPS) → 127.0.0.1:3000 → frontend → backend → postgres
 ```
 
 Quick start on server:
@@ -131,6 +131,7 @@ cp .env.production.example .env.production   # edit secrets + YOUR_DOMAIN
 docker compose -f docker-compose.prod.yml --env-file .env.production build
 docker compose -f docker-compose.prod.yml --env-file .env.production up -d postgres
 docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
+# Set ADMIN_PASSWORD in .env.production first (min 12 chars, not admin123)
 docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend node dist/prisma/seed.js   # first deploy only
 docker compose -f docker-compose.prod.yml --env-file .env.production up -d
 ```
@@ -141,7 +142,7 @@ Full workflow (backup, rollback, logs): `docs/deployment.md`.
 
 ## Phase status
 
-**Completed through Phase 28 — Production Docker Preparation.**
+**Completed through Phase 29 — Server Deployment Preparation.**
 
 | Phases | Status | What landed |
 | --- | --- | --- |
@@ -155,6 +156,7 @@ Full workflow (backup, rollback, logs): `docs/deployment.md`.
 | 26 | Done | Unit + E2E tests (auth, orders, contact requests, products, health, …) |
 | 27 | Done | Production build/start verification, env/secrets audit, deployment docs |
 | 28 | Done | Production Dockerfiles, `docker-compose.prod.yml`, PostgreSQL volume, Nginx example |
+| 29 | Done | Localhost-only frontend bind, `API_INTERNAL_URL`, env-driven admin seed, deployment checklist |
 
 ### Public site
 

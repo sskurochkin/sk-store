@@ -3,9 +3,38 @@ import { Prisma, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'admin123';
 const BCRYPT_ROUNDS = 10;
+const BOOTSTRAP_PASSWORD = 'admin123';
+
+type AdminCredentials = {
+  username: string;
+  password: string;
+};
+
+function resolveAdminCredentials(): AdminCredentials {
+  const username = process.env.ADMIN_USERNAME?.trim() || 'admin';
+  const password = process.env.ADMIN_PASSWORD?.trim();
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  if (isProduction) {
+    if (!password || password.length < 12) {
+      throw new Error(
+        'ADMIN_PASSWORD must be set (minimum 12 characters) for production seed',
+      );
+    }
+    if (password === BOOTSTRAP_PASSWORD) {
+      throw new Error(
+        'Bootstrap password must not be used in production seed',
+      );
+    }
+    return { username, password };
+  }
+
+  return {
+    username,
+    password: password || BOOTSTRAP_PASSWORD,
+  };
+}
 
 const DEMO_PRODUCTS = [
   {
@@ -158,12 +187,14 @@ const DEMO_HOME_BENEFITS = [
 ] as const;
 
 async function main(): Promise<void> {
-  const passwordHash = await hash(ADMIN_PASSWORD, BCRYPT_ROUNDS);
+  const { username: adminUsername, password: adminPassword } =
+    resolveAdminCredentials();
+  const passwordHash = await hash(adminPassword, BCRYPT_ROUNDS);
 
   await prisma.admin.upsert({
-    where: { username: ADMIN_USERNAME },
+    where: { username: adminUsername },
     create: {
-      username: ADMIN_USERNAME,
+      username: adminUsername,
       passwordHash,
     },
     update: {
@@ -171,6 +202,24 @@ async function main(): Promise<void> {
     },
   });
 
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  if (!isProduction) {
+    await seedDemoCatalog();
+  }
+
+  await seedSiteContent();
+
+  console.log(
+    `Seed complete: admin user "${adminUsername}",` +
+      (isProduction
+        ? ' site content (no demo catalog in production).'
+        : ` ${DEMO_PRODUCTS.length} products, ${DEMO_NEWS.length} news,` +
+          ` ${DEMO_SOCIALS.length} socials, site settings, ${DEMO_HOME_BENEFITS.length} home benefits, legal pages.`),
+  );
+}
+
+async function seedDemoCatalog(): Promise<void> {
   for (const product of DEMO_PRODUCTS) {
     await prisma.product.upsert({
       where: { alias: product.alias },
@@ -213,6 +262,9 @@ async function main(): Promise<void> {
     });
   }
 
+}
+
+async function seedSiteContent(): Promise<void> {
   for (const social of DEMO_SOCIALS) {
     await prisma.social.upsert({
       where: { id: social.id },
@@ -303,9 +355,6 @@ async function main(): Promise<void> {
     });
   }
 
-  console.log(
-    `Seed complete: admin "${ADMIN_USERNAME}", ${DEMO_PRODUCTS.length} products, ${DEMO_NEWS.length} news, ${DEMO_SOCIALS.length} socials, site settings, ${DEMO_HOME_BENEFITS.length} home benefits, ${SEED_LEGAL_PAGES.length} legal pages.`,
-  );
 }
 
 main()

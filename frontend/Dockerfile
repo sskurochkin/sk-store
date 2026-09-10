@@ -14,12 +14,13 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build-time public env (embedded into Next.js output)
-ARG NEXT_PUBLIC_API_URL=http://backend:3001
+# Server-only Nest origin (rewrites / SSR / middleware — not in client bundle)
+ARG API_INTERNAL_URL=http://backend:3001
+# Public site origin (metadata / OG — embedded in client where used)
 ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ARG NEXT_PUBLIC_IMAGE_REMOTE_HOSTS=
 
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV API_INTERNAL_URL=$API_INTERNAL_URL
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_IMAGE_REMOTE_HOSTS=$NEXT_PUBLIC_IMAGE_REMOTE_HOSTS
 

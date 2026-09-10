@@ -13,6 +13,11 @@ services:
   postgres:
     image: postgres:16.4-alpine
     restart: unless-stopped
+    logging: &json_log
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-skstore}
       POSTGRES_USER: ${POSTGRES_USER:-skstore_app}
@@ -37,6 +42,7 @@ services:
       context: ./server
       dockerfile: Dockerfile
     restart: unless-stopped
+    logging: *json_log
     environment:
       NODE_ENV: production
       PORT: 3001
@@ -60,6 +66,9 @@ services:
       SMTP_SECURE: ${SMTP_SECURE:-true}
       MAIL_FROM: ${MAIL_FROM:?MAIL_FROM is required}
       ORDER_NOTIFICATION_EMAIL: ${ORDER_NOTIFICATION_EMAIL:?ORDER_NOTIFICATION_EMAIL is required}
+      # Used by production seed only (`node dist/prisma/seed.js`)
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -83,12 +92,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://backend:3001
+        API_INTERNAL_URL: http://backend:3001
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL is required}
         NEXT_PUBLIC_IMAGE_REMOTE_HOSTS: ${NEXT_PUBLIC_IMAGE_REMOTE_HOSTS:-}
     restart: unless-stopped
+    # Bind to localhost only — public traffic enters via host Nginx (:443).
     ports:
-      - "${FRONTEND_PUBLISH_PORT:-3000}:3000"
+      - "127.0.0.1:${FRONTEND_PUBLISH_PORT:-3000}:3000"
+    logging: *json_log
     depends_on:
       backend:
         condition: service_healthy

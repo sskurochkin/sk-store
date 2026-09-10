@@ -1,4 +1,4 @@
-import { NEST_API_ORIGIN } from "@/constants/site";
+import { getNestApiOrigin } from "@/constants/site";
 import type { AuthUser } from "@/types/auth";
 
 function isAuthUser(value: unknown): value is AuthUser {
@@ -21,7 +21,7 @@ export async function fetchCurrentUserFromCookieHeader(
   }
 
   try {
-    const response = await fetch(`${NEST_API_ORIGIN}/api/auth/me`, {
+    const response = await fetch(`${getNestApiOrigin()}/api/auth/me`, {
       method: "GET",
       headers: {
         Accept: "application/json",
