@@ -57,7 +57,7 @@ Responsive strategy is mobile-first with media queries at `40rem` / `60rem` / `8
 - Persistence: `localStorage` key `sk-store:cart` via `frontend/src/lib/cart-storage.ts` only; hydrate after mount
 - Cart item: `productId`, `quantity` (1–99), `name`, `price` (UX snapshot), `mainPhoto`, `alias`
 - `/cart` — list / empty / qty / remove / clear
-- Header `MiniCart` → `/cart` with item-count badge; product detail `ProductPurchaseControls` → «В корзину»
+- Header `MiniCart` → `/cart` with item-count badge; on desktop (≥60rem) hover/focus opens `MiniCartPanel` popover (list, qty, remove, total, link to `/cart`); product detail `ProductPurchaseControls` → «В корзину»
 
 ### Checkout (Phase 14)
 

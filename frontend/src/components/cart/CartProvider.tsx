@@ -15,12 +15,20 @@ import { lineSubtotal } from "@/lib/cart-money";
 import { clampQuantity, loadCartItems, saveCartItems } from "@/lib/cart-storage";
 import type { AddCartItemInput, CartItem } from "@/types/cart";
 
+export type CartMutationOptions = {
+  silent?: boolean;
+};
+
 type CartContextValue = {
   items: CartItem[];
   isHydrated: boolean;
   addItem: (input: AddCartItemInput) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string, options?: CartMutationOptions) => void;
+  updateQuantity: (
+    productId: string,
+    quantity: number,
+    options?: CartMutationOptions,
+  ) => void;
   clearCart: () => void;
   /** Number of distinct product lines (kinds), not total units. */
   getItemCount: () => number;
@@ -92,22 +100,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const removeItem = useCallback(
-    (productId: string) => {
+    (productId: string, options?: CartMutationOptions) => {
       setItems((current) =>
         current.filter((item) => item.productId !== productId),
       );
-      showToast("Товар удалён из корзины");
+      if (!options?.silent) {
+        showToast("Товар удалён из корзины");
+      }
     },
     [showToast],
   );
 
   const updateQuantity = useCallback(
-    (productId: string, quantity: number) => {
+    (productId: string, quantity: number, options?: CartMutationOptions) => {
       if (!Number.isFinite(quantity) || quantity < MIN_QUANTITY) {
         setItems((current) =>
           current.filter((item) => item.productId !== productId),
         );
-        showToast("Товар удалён из корзины");
+        if (!options?.silent) {
+          showToast("Товар удалён из корзины");
+        }
         return;
       }
 
@@ -119,7 +131,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
             : item,
         ),
       );
-      showToast("Количество обновлено");
+      if (!options?.silent) {
+        showToast("Количество обновлено");
+      }
     },
     [showToast],
   );
