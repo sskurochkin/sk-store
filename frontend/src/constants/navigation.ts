@@ -8,4 +8,5 @@ export const MAIN_NAV_LINKS: NavLink[] = [
   { href: "/products", label: "Продукты" },
   { href: "/news", label: "Новости" },
   { href: "/contacts", label: "Контакты" },
+  { href: "/services", label: "Сервисы" },
 ];

@@ -89,22 +89,7 @@ jobs:
           fi
           EOF
 
-      - name: Docker build
-        run: |
-          ssh -i ~/.ssh/deploy_key \
-            -o BatchMode=yes \
-            -o ServerAliveInterval=30 \
-            -o ServerAliveCountMax=120 \
-            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s << EOF
-          set -euxo pipefail
-          cd "${DEPLOY_PATH}"
-          echo "==> Docker build (may take several minutes)"
-          export DOCKER_BUILDKIT=1
-          docker compose -f docker-compose.prod.yml --env-file .env.production build --progress=plain
-          echo "==> Docker build finished"
-          EOF
-
-      - name: Migrate and start
+      - name: Build, migrate, and start
         run: |
           ssh -i ~/.ssh/deploy_key \
             -o BatchMode=yes \
@@ -114,14 +99,29 @@ jobs:
           set -euxo pipefail
           cd "${DEPLOY_PATH}"
           COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.production"
+
+          echo "==> Docker build (may take several minutes)"
+          export DOCKER_BUILDKIT=1
+          \$COMPOSE build --progress=plain
+
           echo "==> Prisma migrate deploy"
           \$COMPOSE run --rm backend npx prisma migrate deploy
-          echo "==> Docker up (force-recreate app containers to pick up new images)"
+
+          echo "==> Docker up (same session as build — force-recreate app containers)"
           \$COMPOSE up -d --force-recreate --wait backend frontend
+
           echo "==> Container status"
           \$COMPOSE ps
-          echo "==> Frontend image in use:"
-          docker inspect sk-store-prod-frontend-1 --format '{{.Image}}' 2>/dev/null || true
+
+          FRONTEND_IMAGE="\$(docker inspect sk-store-prod-frontend-1 --format '{{.Image}}' 2>/dev/null || true)"
+          LATEST_IMAGE="\$(docker images sk-store-prod-frontend --format '{{.ID}}' | head -1)"
+          echo "==> Frontend container image: \${FRONTEND_IMAGE}"
+          echo "==> Frontend latest image:    \${LATEST_IMAGE}"
+          if [ -n "\$FRONTEND_IMAGE" ] && [ -n "\$LATEST_IMAGE" ] && ! echo "\$FRONTEND_IMAGE" | grep -q "\$LATEST_IMAGE"; then
+            echo "::error::Frontend container is not running the latest built image"
+            exit 1
+          fi
+          echo "==> Frontend image verified"
           EOF
 
       - name: Smoke tests
