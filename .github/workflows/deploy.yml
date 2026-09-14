@@ -14,33 +14,80 @@ jobs:
     name: Deploy to VPS
     runs-on: ubuntu-latest
     environment: production
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      SSH_KEY_B64: ${{ secrets.DEPLOY_SSH_KEY_B64 }}
     steps:
+      - name: Validate deploy configuration
+        run: |
+          if [ -z "$DEPLOY_HOST" ] || [ -z "$DEPLOY_USER" ] || [ -z "$DEPLOY_PATH" ]; then
+            echo "::error::Set DEPLOY_HOST, DEPLOY_USER, and DEPLOY_PATH secrets"
+            exit 1
+          fi
+          if [ -z "$SSH_KEY" ] && [ -z "$SSH_KEY_B64" ]; then
+            echo "::error::Set DEPLOY_SSH_KEY (raw private key) or DEPLOY_SSH_KEY_B64 (base64, recommended)"
+            exit 1
+          fi
+
+      - name: Configure SSH key
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          if [ -n "$SSH_KEY_B64" ]; then
+            echo "$SSH_KEY_B64" | base64 -d > ~/.ssh/deploy_key
+          else
+            printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          fi
+          chmod 600 ~/.ssh/deploy_key
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key >/dev/null 2>&1; then
+            echo "::error::Private key is invalid. Paste the full OpenSSH private key (BEGIN/END lines) or use DEPLOY_SSH_KEY_B64."
+            exit 1
+          fi
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
       - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          script_stop: true
-          script: |
-            set -euo pipefail
-            cd "${{ secrets.DEPLOY_PATH }}"
+        run: |
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s << EOF
+          set -euo pipefail
+          cd "${DEPLOY_PATH}"
 
-            git fetch origin main
-            git checkout main
-            git pull --ff-only origin main
+          git fetch origin main
+          git checkout main
+          git pull --ff-only origin main
 
-            mkdir -p ~/backups
-            docker compose -f docker-compose.prod.yml --env-file .env.production exec -T postgres \
-              pg_dump -U skstore_app -d skstore --no-owner --format=custom \
-              > ~/backups/skstore-$(date +%Y%m%d-%H%M%S).dump
+          mkdir -p ~/backups
+          docker compose -f docker-compose.prod.yml --env-file .env.production exec -T postgres \\
+            pg_dump -U skstore_app -d skstore --no-owner --format=custom \\
+            > ~/backups/skstore-\$(date +%Y%m%d-%H%M%S).dump
 
-            docker compose -f docker-compose.prod.yml --env-file .env.production build
-            docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
-            docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+          docker compose -f docker-compose.prod.yml --env-file .env.production build
+          docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
+          docker compose -f docker-compose.prod.yml --env-file .env.production up -d --wait
 
-            docker compose -f docker-compose.prod.yml --env-file .env.production ps
-            curl -fsS http://127.0.0.1:3000/ >/dev/null
-            curl -fsS http://127.0.0.1:3000/api/health >/dev/null
+          docker compose -f docker-compose.prod.yml --env-file .env.production ps
 
-            docker image prune -f
+          wait_for_url() {
+            local url="\$1"
+            local attempts=30
+            local i=1
+            while [ "\$i" -le "\$attempts" ]; do
+              if curl -fsS "\$url" >/dev/null 2>&1; then
+                echo "OK: \$url"
+                return 0
+              fi
+              echo "Waiting for \$url (\$i/\$attempts)..."
+              sleep 3
+              i=\$((i + 1))
+            done
+            echo "Timeout: \$url"
+            return 1
+          }
+
+          wait_for_url http://127.0.0.1:3000/
+          wait_for_url http://127.0.0.1:3000/api/health
+
+          docker image prune -f
+          EOF
