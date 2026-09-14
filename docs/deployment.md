@@ -79,7 +79,7 @@ Deploy steps on the VPS (same as manual update):
 3. `docker compose ... build`
 4. `prisma migrate deploy`
 5. `docker compose ... up -d`
-6. Smoke test: `curl` homepage and `/api/health`
+6. Wait for health (`up -d --wait`) and smoke test homepage + `/api/health` (retries while Next.js starts)
 
 Always pass `--env-file .env.production` (Compose reads server env from this file, not from GitHub).
 
@@ -89,10 +89,37 @@ Settings → Secrets and variables → Actions → **Secrets**:
 
 | Secret | Example | Notes |
 | --- | --- | --- |
-| `DEPLOY_SSH_KEY` | OpenSSH private key | Full `-----BEGIN OPENSSH PRIVATE KEY-----` … block |
 | `DEPLOY_HOST` | `130.49.141.216` | VPS IP or domain |
 | `DEPLOY_USER` | `deploy` | SSH user with Docker access |
 | `DEPLOY_PATH` | `/home/deploy/sk-store` | Absolute path to repo clone on server |
+| `DEPLOY_SSH_KEY_B64` | base64 one-liner | **Recommended** — avoids multiline paste issues |
+| `DEPLOY_SSH_KEY` | OpenSSH private key | Alternative: full `-----BEGIN OPENSSH PRIVATE KEY-----` … block |
+
+Use **either** `DEPLOY_SSH_KEY_B64` **or** `DEPLOY_SSH_KEY` (not the `.pub` file).
+
+Encode private key for GitHub (macOS):
+
+```bash
+base64 < ~/.ssh/sk-store-deploy | tr -d '\n' | pbcopy
+```
+
+Linux:
+
+```bash
+base64 -w 0 ~/.ssh/sk-store-deploy
+```
+
+Paste the output into secret `DEPLOY_SSH_KEY_B64`.
+
+Raw key (if not using base64):
+
+```bash
+cat ~/.ssh/sk-store-deploy | pbcopy   # macOS
+```
+
+The secret must include `-----BEGIN OPENSSH PRIVATE KEY-----` and `-----END OPENSSH PRIVATE KEY-----` with line breaks preserved. Do **not** wrap the value in quotes.
+
+If deploy fails with `ssh: no key found` or `ParsePrivateKey`, the secret is empty, corrupted, or contains the **public** key — re-create `DEPLOY_SSH_KEY_B64` from the private file.
 
 Never commit `.env.production` or private keys to the repository.
 
