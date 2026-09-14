@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { MAX_QUANTITY, MIN_QUANTITY } from "@/constants/cart";
+import clsx from "clsx";
 import { IconButton } from "@/components/ui/IconButton/IconButton";
 import styles from "./QuantityControls.module.css";
 
@@ -22,6 +23,8 @@ type QuantityControlsProps = {
    * +/- and blur still commit immediately.
    */
   commitDelayMs?: number;
+  /** Hides visible label and tightens layout (e.g. mini-cart). */
+  compact?: boolean;
 };
 
 export function QuantityControls({
@@ -32,6 +35,7 @@ export function QuantityControls({
   allowRemove = false,
   editable = false,
   commitDelayMs = 0,
+  compact = false,
 }: QuantityControlsProps) {
   const generatedId = useId();
   const labelId = id ?? `quantity-label-${generatedId}`;
@@ -135,14 +139,16 @@ export function QuantityControls({
     commitDraft(draft);
   }
 
+  const labelClassName = clsx(styles.label, compact && styles.labelCompact);
+
   return (
-    <div className={styles.wrapper}>
+    <div className={clsx(styles.wrapper, compact && styles.wrapperCompact)}>
       {editable ? (
-        <label className={styles.label} htmlFor={inputId}>
+        <label className={labelClassName} htmlFor={inputId}>
           Количество
         </label>
       ) : (
-        <p className={styles.label} id={labelId}>
+        <p className={labelClassName} id={labelId}>
           Количество
         </p>
       )}

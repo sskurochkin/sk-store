@@ -1,3 +1,8 @@
+.wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
 .link {
   position: relative;
   display: inline-flex;
@@ -22,6 +27,16 @@
   outline-offset: 2px;
 }
 
+.linkStatic {
+  cursor: default;
+  color: var(--color-primary);
+}
+
+.linkStatic:hover {
+  background-color: transparent;
+  color: var(--color-primary);
+}
+
 .icon {
   width: 1.375rem;
   height: 1.375rem;
@@ -41,4 +56,43 @@
   font-weight: var(--font-weight-semibold);
   line-height: 1.25rem;
   text-align: center;
+}
+
+.panel {
+  display: none;
+}
+
+@media (min-width: 60rem) {
+  .panel {
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    right: 0;
+    z-index: 110;
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition:
+      opacity var(--transition-fast),
+      visibility var(--transition-fast),
+      transform var(--transition-fast);
+  }
+
+  .wrapperOpen .panel {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  /* Hover bridge between trigger and panel */
+  .panel::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 100%;
+    width: 100%;
+    height: var(--space-2);
+  }
 }
