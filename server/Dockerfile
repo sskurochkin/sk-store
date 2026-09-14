@@ -10,8 +10,11 @@ RUN npm ci
 
 COPY . .
 
-RUN npx prisma generate
-RUN npm run build
+# Busts Docker layer cache on deploy when git commit changes (set in compose / CI).
+ARG GIT_COMMIT=unknown
+
+RUN echo "Build commit: ${GIT_COMMIT}" && npx prisma generate
+RUN echo "Build commit: ${GIT_COMMIT}" && npm run build
 # Compiled seed for `node dist/prisma/seed.js` in production containers
 RUN npx tsc prisma/seed.ts \
     --outDir dist/prisma \

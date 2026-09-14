@@ -41,6 +41,8 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
     restart: unless-stopped
     logging: *json_log
     environment:
@@ -92,6 +94,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
         API_INTERNAL_URL: http://backend:3001
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL is required}
         NEXT_PUBLIC_IMAGE_REMOTE_HOSTS: ${NEXT_PUBLIC_IMAGE_REMOTE_HOSTS:-}

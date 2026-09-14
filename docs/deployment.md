@@ -72,12 +72,24 @@ Runs on push to `main` and via **Actions → Deploy → Run workflow** (`workflo
 
 Uses GitHub Environment **`production`** — enable **Required reviewers** under Settings → Environments for manual approval before deploy.
 
-Deploy steps on the VPS (separate SSH steps in Actions for clearer logs):
+Deploy steps on the VPS (Actions):
 
-1. `git pull --ff-only origin main`
-2. PostgreSQL backup to `~/backups/skstore-YYYYMMDD-HHMMSS.dump` via `pg_dump -f` inside the container + `docker compose cp` (best-effort — deploy continues if backup fails; avoids streaming binary dump over SSH)
-3. **Single SSH step:** `build` → `prisma migrate deploy` → `up -d --force-recreate --wait backend frontend` (same Compose session so containers pick up freshly built images; verifies frontend container image matches latest tag)
-4. Smoke test homepage + `/api/health` (retries; warnings only on failure)
+1. PostgreSQL backup (best-effort) via `pg_dump -f` inside the container + `docker compose cp`
+2. **Single SSH step:** `git pull` → `export GIT_COMMIT=$(git rev-parse HEAD)` → `build` → `migrate deploy` → `up -d --force-recreate --wait backend frontend`
+   - `GIT_COMMIT` build arg busts Docker cache so `npm run build` / Nest build rerun on every new commit
+   - Verifies frontend container image matches latest tag
+3. Smoke test homepage + `/api/health` (retries; warnings only on failure)
+
+Manual deploy on the server (same order):
+
+```bash
+cd /home/deploy/sk-store
+git pull --ff-only origin main
+export GIT_COMMIT="$(git rev-parse HEAD)"
+docker compose -f docker-compose.prod.yml --env-file .env.production build
+docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --force-recreate --wait backend frontend
+```
 
 Always pass `--env-file .env.production` (Compose reads server env from this file, not from GitHub).
 
@@ -306,7 +318,8 @@ When [CI/CD](#cicd-github-actions) is configured, merging to `main` runs this au
 3. Build and migrate:
 
 ```bash
-git pull
+git pull --ff-only origin main
+export GIT_COMMIT="$(git rev-parse HEAD)"
 docker compose -f docker-compose.prod.yml --env-file .env.production build
 docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
 docker compose -f docker-compose.prod.yml --env-file .env.production up -d --force-recreate --wait backend frontend
