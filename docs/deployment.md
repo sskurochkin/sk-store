@@ -78,7 +78,7 @@ Deploy steps on the VPS (separate SSH steps in Actions for clearer logs):
 2. PostgreSQL backup to `~/backups/skstore-YYYYMMDD-HHMMSS.dump` via `pg_dump -f` inside the container + `docker compose cp` (best-effort — deploy continues if backup fails; avoids streaming binary dump over SSH)
 3. `docker compose ... build --progress=plain`
 4. `prisma migrate deploy`
-5. `docker compose ... up -d --wait`
+5. `docker compose ... up -d --force-recreate --wait backend frontend` (recreates app containers after build so new images are used; postgres is left running)
 6. Smoke test homepage + `/api/health` (retries; warnings only on failure)
 
 Always pass `--env-file .env.production` (Compose reads server env from this file, not from GitHub).
@@ -311,7 +311,7 @@ When [CI/CD](#cicd-github-actions) is configured, merging to `main` runs this au
 git pull
 docker compose -f docker-compose.prod.yml --env-file .env.production build
 docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d --force-recreate backend frontend
 ```
 
 4. Smoke test public pages + admin login.

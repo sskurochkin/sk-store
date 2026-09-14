@@ -116,10 +116,12 @@ jobs:
           COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.production"
           echo "==> Prisma migrate deploy"
           \$COMPOSE run --rm backend npx prisma migrate deploy
-          echo "==> Docker up"
-          \$COMPOSE up -d --wait
+          echo "==> Docker up (force-recreate app containers to pick up new images)"
+          \$COMPOSE up -d --force-recreate --wait backend frontend
           echo "==> Container status"
           \$COMPOSE ps
+          echo "==> Frontend image in use:"
+          docker inspect sk-store-prod-frontend-1 --format '{{.Image}}' 2>/dev/null || true
           EOF
 
       - name: Smoke tests
