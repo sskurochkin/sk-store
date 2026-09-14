@@ -99,6 +99,9 @@ services:
     # Bind to localhost only — public traffic enters via host Nginx (:443).
     ports:
       - "127.0.0.1:${FRONTEND_PUBLISH_PORT:-3000}:3000"
+    environment:
+      # Runtime: middleware / SSR auth checks (not embedded at build like rewrites).
+      API_INTERNAL_URL: http://backend:3001
     logging: *json_log
     depends_on:
       backend:

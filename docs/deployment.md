@@ -256,7 +256,7 @@ Set in `.env.production` before `docker compose build`:
 | `NEXT_PUBLIC_SITE_URL` | `https://YOUR_DOMAIN` — metadata / OG / canonical |
 | `NEXT_PUBLIC_IMAGE_REMOTE_HOSTS` | optional — `next/image` hostnames |
 
-`API_INTERNAL_URL=http://backend:3001` is set in `docker-compose.prod.yml` build args (server-only, not in client bundle).
+`API_INTERNAL_URL=http://backend:3001` is set in `docker-compose.prod.yml` (build args + frontend runtime env) and `frontend/Dockerfile` (server-only, not in client bundle). Required for middleware `/admin` auth checks.
 
 Browser code uses same-origin `/api/*`. Never expose `postgres` or internal Docker hostnames to browsers.
 
