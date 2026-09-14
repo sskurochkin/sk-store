@@ -72,14 +72,14 @@ Runs on push to `main` and via **Actions → Deploy → Run workflow** (`workflo
 
 Uses GitHub Environment **`production`** — enable **Required reviewers** under Settings → Environments for manual approval before deploy.
 
-Deploy steps on the VPS (same as manual update):
+Deploy steps on the VPS (separate SSH steps in Actions for clearer logs):
 
 1. `git pull --ff-only origin main`
-2. PostgreSQL backup to `~/backups/skstore-YYYYMMDD-HHMMSS.dump` (best-effort — deploy continues if backup fails)
-3. `docker compose ... build` (verbose `set -x` logging in Actions)
+2. PostgreSQL backup to `~/backups/skstore-YYYYMMDD-HHMMSS.dump` via `pg_dump -f` inside the container + `docker compose cp` (best-effort — deploy continues if backup fails; avoids streaming binary dump over SSH)
+3. `docker compose ... build --progress=plain`
 4. `prisma migrate deploy`
-5. `docker compose ... up -d`
-6. Wait for health (`up -d --wait`) and smoke test homepage + `/api/health` (retries while Next.js starts)
+5. `docker compose ... up -d --wait`
+6. Smoke test homepage + `/api/health` (retries; warnings only on failure)
 
 Always pass `--env-file .env.production` (Compose reads server env from this file, not from GitHub).
 

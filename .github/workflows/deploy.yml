@@ -48,7 +48,7 @@ jobs:
           fi
           ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: Deploy over SSH
+      - name: Git pull on server
         run: |
           ssh -i ~/.ssh/deploy_key \
             -o BatchMode=yes \
@@ -56,49 +56,80 @@ jobs:
             -o ServerAliveCountMax=120 \
             "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s << EOF
           set -euxo pipefail
-
-          echo "==> Deploy started"
-          echo "==> User: \$(whoami)"
-          echo "==> Host: \$(hostname -f 2>/dev/null || hostname)"
-
           cd "${DEPLOY_PATH}"
-          echo "==> Working directory: \$(pwd)"
-
-          echo "==> Checking .env.production"
           test -f .env.production
-
-          echo "==> Checking docker"
           docker compose version
-
-          echo "==> Git fetch and pull"
           git fetch origin main
           git checkout main
           git pull --ff-only origin main
           echo "==> Git at: \$(git log -1 --oneline)"
+          EOF
 
-          echo "==> Database backup (best-effort, deploy continues on failure)"
+      - name: Database backup (best-effort)
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=120 \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s << EOF
+          set -euxo pipefail
+          cd "${DEPLOY_PATH}"
+          COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.production"
           mkdir -p ~/backups
           BACKUP_FILE=~/backups/skstore-\$(date +%Y%m%d-%H%M%S).dump
-          if docker compose -f docker-compose.prod.yml --env-file .env.production exec -T postgres \\
-            pg_dump -U skstore_app -d skstore --no-owner --format=custom > "\$BACKUP_FILE"; then
-            echo "==> Backup OK: \$BACKUP_FILE"
+          CONTAINER_DUMP=/tmp/skstore-backup.dump
+          echo "==> Database backup (best-effort)"
+          if \$COMPOSE exec -T postgres pg_dump -U skstore_app -d skstore --no-owner --format=custom -f "\$CONTAINER_DUMP" \\
+            && \$COMPOSE cp "postgres:\$CONTAINER_DUMP" "\$BACKUP_FILE" \\
+            && \$COMPOSE exec -T postgres rm -f "\$CONTAINER_DUMP"; then
+            echo "==> Backup OK: \$BACKUP_FILE (\$(wc -c < "\$BACKUP_FILE") bytes)"
           else
             echo "::warning::Backup failed or skipped — continuing deploy"
+            \$COMPOSE exec -T postgres rm -f "\$CONTAINER_DUMP" 2>/dev/null || true
           fi
+          EOF
 
-          echo "==> Docker build"
+      - name: Docker build
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=120 \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s << EOF
+          set -euxo pipefail
+          cd "${DEPLOY_PATH}"
+          echo "==> Docker build (may take several minutes)"
           export DOCKER_BUILDKIT=1
           docker compose -f docker-compose.prod.yml --env-file .env.production build --progress=plain
+          echo "==> Docker build finished"
+          EOF
 
+      - name: Migrate and start
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=120 \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s << EOF
+          set -euxo pipefail
+          cd "${DEPLOY_PATH}"
+          COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.production"
           echo "==> Prisma migrate deploy"
-          docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
-
+          \$COMPOSE run --rm backend npx prisma migrate deploy
           echo "==> Docker up"
-          docker compose -f docker-compose.prod.yml --env-file .env.production up -d --wait
-
+          \$COMPOSE up -d --wait
           echo "==> Container status"
-          docker compose -f docker-compose.prod.yml --env-file .env.production ps
+          \$COMPOSE ps
+          EOF
 
+      - name: Smoke tests
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=120 \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s << EOF
+          set -euxo pipefail
           wait_for_url() {
             local url="\$1"
             local attempts=30
@@ -115,15 +146,12 @@ jobs:
             echo "Timeout: \$url"
             return 1
           }
-
           echo "==> Smoke test: homepage"
           wait_for_url http://127.0.0.1:3000/ || echo "::warning::Homepage smoke test failed"
-
           echo "==> Smoke test: /api/health"
           wait_for_url http://127.0.0.1:3000/api/health || echo "::warning::Health smoke test failed"
-
           echo "==> Prune old images"
+          cd "${DEPLOY_PATH}"
           docker image prune -f
-
           echo "==> Deploy finished successfully"
           EOF
