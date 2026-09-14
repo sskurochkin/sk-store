@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      force_build:
+        description: Force rebuild backend and frontend (ignore change detection)
+        type: boolean
+        default: false
 
 concurrency:
   group: deploy-production
@@ -90,31 +95,10 @@ jobs:
           git fetch origin main
           git checkout main
           git pull --ff-only origin main
-          export GIT_COMMIT="\$(git rev-parse HEAD)"
           echo "==> Git at: \$(git log -1 --oneline)"
 
-          echo "==> Docker build for commit \${GIT_COMMIT} (may take several minutes)"
-          export DOCKER_BUILDKIT=1
-          \$COMPOSE build --progress=plain
-
-          echo "==> Prisma migrate deploy"
-          \$COMPOSE run --rm backend npx prisma migrate deploy
-
-          echo "==> Docker up (force-recreate app containers)"
-          \$COMPOSE up -d --force-recreate --wait backend frontend
-
-          echo "==> Container status"
-          \$COMPOSE ps
-
-          FRONTEND_IMAGE="\$(docker inspect sk-store-prod-frontend-1 --format '{{.Image}}' 2>/dev/null || true)"
-          LATEST_IMAGE="\$(docker images sk-store-prod-frontend --format '{{.ID}}' | head -1)"
-          echo "==> Frontend container image: \${FRONTEND_IMAGE}"
-          echo "==> Frontend latest image:    \${LATEST_IMAGE}"
-          if [ -n "\$FRONTEND_IMAGE" ] && [ -n "\$LATEST_IMAGE" ] && ! echo "\$FRONTEND_IMAGE" | grep -q "\$LATEST_IMAGE"; then
-            echo "::error::Frontend container is not running the latest built image"
-            exit 1
-          fi
-          echo "==> Frontend image verified"
+          export FORCE_BUILD="${{ github.event.inputs.force_build || 'false' }}"
+          bash deploy/deploy-prod.sh
           EOF
 
       - name: Smoke tests

@@ -17,6 +17,9 @@ coverage/
 !**/.env.example
 !.env.production.example
 
+# Server-local deploy state (written by deploy/deploy-prod.sh on VPS)
+.deploy-last-commit
+
 # Logs / OS
 *.log
 npm-debug.log*
