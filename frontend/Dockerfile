@@ -11,11 +11,11 @@ FROM node:20.18-alpine AS builder
 
 WORKDIR /app
 
+# Before COPY — commit arg participates in layer cache keys for subsequent steps.
+ARG GIT_COMMIT=unknown
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Busts Docker layer cache on deploy when git commit changes (set in compose / CI).
-ARG GIT_COMMIT=unknown
 
 # Server-only Nest origin (rewrites / SSR / middleware — not in client bundle)
 ARG API_INTERNAL_URL=http://backend:3001
@@ -31,9 +31,12 @@ RUN echo "Build commit: ${GIT_COMMIT}" && npm run build
 
 FROM node:20.18-alpine AS runner
 
+ARG GIT_COMMIT=unknown
+
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV GIT_COMMIT=$GIT_COMMIT
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 ENV API_INTERNAL_URL=http://backend:3001

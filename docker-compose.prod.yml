@@ -43,6 +43,7 @@ services:
       dockerfile: Dockerfile
       args:
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
+    image: sk-store-prod-backend:${GIT_COMMIT:-latest}
     restart: unless-stopped
     logging: *json_log
     environment:
@@ -98,6 +99,7 @@ services:
         API_INTERNAL_URL: http://backend:3001
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL is required}
         NEXT_PUBLIC_IMAGE_REMOTE_HOSTS: ${NEXT_PUBLIC_IMAGE_REMOTE_HOSTS:-}
+    image: sk-store-prod-frontend:${GIT_COMMIT:-latest}
     restart: unless-stopped
     # Bind to localhost only — public traffic enters via host Nginx (:443).
     ports:
@@ -105,6 +107,7 @@ services:
     environment:
       # Runtime: middleware / SSR auth checks (not embedded at build like rewrites).
       API_INTERNAL_URL: http://backend:3001
+      GIT_COMMIT: ${GIT_COMMIT:-unknown}
     logging: *json_log
     depends_on:
       backend:

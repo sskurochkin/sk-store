@@ -75,23 +75,32 @@ Uses GitHub Environment **`production`** — enable **Required reviewers** under
 Deploy steps on the VPS (Actions):
 
 1. PostgreSQL backup (best-effort) via `pg_dump -f` inside the container + `docker compose cp`
-2. **Single SSH step:** `git pull` → `export GIT_COMMIT=$(git rev-parse HEAD)` → `build` → `migrate deploy` → `up -d --force-recreate --wait backend frontend`
-   - `GIT_COMMIT` build arg busts Docker cache so `npm run build` / Nest build rerun on every new commit
-   - Verifies frontend container image matches latest tag
+2. **Single SSH step:** `git pull` → `deploy/deploy-prod.sh` (conditional build/recreate)
+   - Compares current commit to `.deploy-last-commit` on the server
+   - **Frontend build** only if `frontend/` changed
+   - **Backend build** only if `server/` changed
+   - **Migrate** only if `server/` changed
+   - **Recreate containers** only for services that were rebuilt, retagged, or affected by `docker-compose.prod.yml` changes
+   - If the commit is unchanged, exits immediately (no build)
+   - Images tagged `sk-store-prod-frontend:$GIT_COMMIT` / `sk-store-prod-backend:$GIT_COMMIT`
+   - Manual **Actions → Deploy → Run workflow** supports **Force rebuild** (`FORCE_BUILD=1`)
 3. Smoke test homepage + `/api/health` (retries; warnings only on failure)
 
-Manual deploy on the server (same order):
+Manual deploy on the server (same logic as CI):
 
 ```bash
 cd /home/deploy/sk-store
 git pull --ff-only origin main
-export GIT_COMMIT="$(git rev-parse HEAD)"
-docker compose -f docker-compose.prod.yml --env-file .env.production build
-docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d --force-recreate --wait backend frontend
+bash deploy/deploy-prod.sh
 ```
 
-Always pass `--env-file .env.production` (Compose reads server env from this file, not from GitHub).
+Force full rebuild (e.g. after Docker cache issues):
+
+```bash
+FORCE_BUILD=1 bash deploy/deploy-prod.sh
+```
+
+The script uses `--env-file .env.production` via `docker-compose.prod.yml`. Server state file `.deploy-last-commit` is gitignored and created on first successful deploy.
 
 ### GitHub secrets (required for deploy)
 
@@ -319,10 +328,7 @@ When [CI/CD](#cicd-github-actions) is configured, merging to `main` runs this au
 
 ```bash
 git pull --ff-only origin main
-export GIT_COMMIT="$(git rev-parse HEAD)"
-docker compose -f docker-compose.prod.yml --env-file .env.production build
-docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d --force-recreate --wait backend frontend
+bash deploy/deploy-prod.sh
 ```
 
 4. Smoke test public pages + admin login.

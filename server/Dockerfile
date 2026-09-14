@@ -3,6 +3,8 @@ FROM node:20.18-bookworm-slim AS builder
 
 WORKDIR /app
 
+ARG GIT_COMMIT=unknown
+
 COPY package.json package-lock.json ./
 COPY prisma ./prisma/
 
@@ -10,11 +12,7 @@ RUN npm ci
 
 COPY . .
 
-# Busts Docker layer cache on deploy when git commit changes (set in compose / CI).
-ARG GIT_COMMIT=unknown
-
-RUN echo "Build commit: ${GIT_COMMIT}" && npx prisma generate
-RUN echo "Build commit: ${GIT_COMMIT}" && npm run build
+RUN echo "Build commit: ${GIT_COMMIT}" && npx prisma generate && npm run build
 # Compiled seed for `node dist/prisma/seed.js` in production containers
 RUN npx tsc prisma/seed.ts \
     --outDir dist/prisma \
