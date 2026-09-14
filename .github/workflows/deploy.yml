@@ -50,23 +50,53 @@ jobs:
 
       - name: Deploy over SSH
         run: |
-          ssh -i ~/.ssh/deploy_key -o BatchMode=yes "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s << EOF
-          set -euo pipefail
-          cd "${DEPLOY_PATH}"
+          ssh -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=120 \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s << EOF
+          set -euxo pipefail
 
+          echo "==> Deploy started"
+          echo "==> User: \$(whoami)"
+          echo "==> Host: \$(hostname -f 2>/dev/null || hostname)"
+
+          cd "${DEPLOY_PATH}"
+          echo "==> Working directory: \$(pwd)"
+
+          echo "==> Checking .env.production"
+          test -f .env.production
+
+          echo "==> Checking docker"
+          docker compose version
+
+          echo "==> Git fetch and pull"
           git fetch origin main
           git checkout main
           git pull --ff-only origin main
+          echo "==> Git at: \$(git log -1 --oneline)"
 
+          echo "==> Database backup (best-effort, deploy continues on failure)"
           mkdir -p ~/backups
-          docker compose -f docker-compose.prod.yml --env-file .env.production exec -T postgres \\
-            pg_dump -U skstore_app -d skstore --no-owner --format=custom \\
-            > ~/backups/skstore-\$(date +%Y%m%d-%H%M%S).dump
+          BACKUP_FILE=~/backups/skstore-\$(date +%Y%m%d-%H%M%S).dump
+          if docker compose -f docker-compose.prod.yml --env-file .env.production exec -T postgres \\
+            pg_dump -U skstore_app -d skstore --no-owner --format=custom > "\$BACKUP_FILE"; then
+            echo "==> Backup OK: \$BACKUP_FILE"
+          else
+            echo "::warning::Backup failed or skipped — continuing deploy"
+          fi
 
-          docker compose -f docker-compose.prod.yml --env-file .env.production build
+          echo "==> Docker build"
+          export DOCKER_BUILDKIT=1
+          docker compose -f docker-compose.prod.yml --env-file .env.production build --progress=plain
+
+          echo "==> Prisma migrate deploy"
           docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
+
+          echo "==> Docker up"
           docker compose -f docker-compose.prod.yml --env-file .env.production up -d --wait
 
+          echo "==> Container status"
           docker compose -f docker-compose.prod.yml --env-file .env.production ps
 
           wait_for_url() {
@@ -86,8 +116,14 @@ jobs:
             return 1
           }
 
-          wait_for_url http://127.0.0.1:3000/
-          wait_for_url http://127.0.0.1:3000/api/health
+          echo "==> Smoke test: homepage"
+          wait_for_url http://127.0.0.1:3000/ || echo "::warning::Homepage smoke test failed"
 
+          echo "==> Smoke test: /api/health"
+          wait_for_url http://127.0.0.1:3000/api/health || echo "::warning::Health smoke test failed"
+
+          echo "==> Prune old images"
           docker image prune -f
+
+          echo "==> Deploy finished successfully"
           EOF

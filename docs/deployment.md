@@ -75,8 +75,8 @@ Uses GitHub Environment **`production`** — enable **Required reviewers** under
 Deploy steps on the VPS (same as manual update):
 
 1. `git pull --ff-only origin main`
-2. PostgreSQL backup to `~/backups/skstore-YYYYMMDD-HHMMSS.dump`
-3. `docker compose ... build`
+2. PostgreSQL backup to `~/backups/skstore-YYYYMMDD-HHMMSS.dump` (best-effort — deploy continues if backup fails)
+3. `docker compose ... build` (verbose `set -x` logging in Actions)
 4. `prisma migrate deploy`
 5. `docker compose ... up -d`
 6. Wait for health (`up -d --wait`) and smoke test homepage + `/api/health` (retries while Next.js starts)
