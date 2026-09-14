@@ -35,8 +35,104 @@ Files:
 | `frontend/Dockerfile` | Next.js standalone image |
 | `.env.production.example` | Production env template (copy to server) |
 | `deploy/nginx/sk-store.conf.example` | HTTPS reverse proxy example |
+| `.github/workflows/ci.yml` | Lint, typecheck, test, build on PR/push |
+| `.github/workflows/deploy.yml` | Production deploy to VPS on push to `main` |
 
 **Do not use `docker compose down -v`** in normal operations — `-v` deletes the `postgres_data` volume.
+
+---
+
+## CI/CD (GitHub Actions)
+
+```text
+PR / push → CI (frontend + server checks)
+merge to main → Deploy (SSH → pull → backup → build → migrate → up)
+```
+
+Workflow files live in `.github/workflows/`. Configure once in the GitHub repository settings; `.env.production` stays on the server only.
+
+### CI (`.github/workflows/ci.yml`)
+
+Runs on every push and pull request to `main`:
+
+| Job | Checks |
+| --- | --- |
+| **Frontend** | `typecheck`, `lint`, `build` |
+| **Server** | `prisma generate`, `typecheck`, `lint`, `build`, `npm test` |
+
+Optional repository variable (Settings → Secrets and variables → Actions → Variables):
+
+| Variable | Default in workflow | Purpose |
+| --- | --- | --- |
+| `CI_NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Frontend build in CI (not production URL) |
+
+### CD (`.github/workflows/deploy.yml`)
+
+Runs on push to `main` and via **Actions → Deploy → Run workflow** (`workflow_dispatch`).
+
+Uses GitHub Environment **`production`** — enable **Required reviewers** under Settings → Environments for manual approval before deploy.
+
+Deploy steps on the VPS (same as manual update):
+
+1. `git pull --ff-only origin main`
+2. PostgreSQL backup to `~/backups/skstore-YYYYMMDD-HHMMSS.dump`
+3. `docker compose ... build`
+4. `prisma migrate deploy`
+5. `docker compose ... up -d`
+6. Smoke test: `curl` homepage and `/api/health`
+
+Always pass `--env-file .env.production` (Compose reads server env from this file, not from GitHub).
+
+### GitHub secrets (required for deploy)
+
+Settings → Secrets and variables → Actions → **Secrets**:
+
+| Secret | Example | Notes |
+| --- | --- | --- |
+| `DEPLOY_SSH_KEY` | OpenSSH private key | Full `-----BEGIN OPENSSH PRIVATE KEY-----` … block |
+| `DEPLOY_HOST` | `130.49.141.216` | VPS IP or domain |
+| `DEPLOY_USER` | `deploy` | SSH user with Docker access |
+| `DEPLOY_PATH` | `/home/deploy/sk-store` | Absolute path to repo clone on server |
+
+Never commit `.env.production` or private keys to the repository.
+
+### Server setup for deploy user
+
+On the VPS (once):
+
+```bash
+adduser deploy
+usermod -aG docker deploy
+
+mkdir -p /home/deploy/.ssh
+chmod 700 /home/deploy/.ssh
+# Append deploy public key (from ssh-keygen) to authorized_keys:
+cat sk-store-deploy.pub >> /home/deploy/.ssh/authorized_keys
+chmod 600 /home/deploy/.ssh/authorized_keys
+chown -R deploy:deploy /home/deploy/.ssh
+```
+
+Generate deploy key pair locally (private → `DEPLOY_SSH_KEY`, public → server `authorized_keys`):
+
+```bash
+ssh-keygen -t ed25519 -C "github-actions-sk-store" -f ~/.ssh/sk-store-deploy -N ""
+```
+
+Verify SSH login:
+
+```bash
+ssh -i ~/.ssh/sk-store-deploy deploy@YOUR_VPS_IP
+```
+
+Clone or move the project so `DEPLOY_PATH` matches, e.g. `/home/deploy/sk-store`, with `.env.production` (`chmod 600`) already configured.
+
+### Branch protection (recommended)
+
+For `main`: require pull request, require CI status checks (`Frontend`, `Server`), disallow force-push.
+
+### Manual deploy (fallback)
+
+Same commands as the workflow — see [Update deployment](#update-deployment) below.
 
 ---
 
@@ -177,6 +273,8 @@ docker compose -f docker-compose.prod.yml exec -T postgres \
 Test restore on a non-production database first.
 
 ### Update deployment
+
+When [CI/CD](#cicd-github-actions) is configured, merging to `main` runs this automatically. Otherwise deploy manually:
 
 1. **Backup database first** (see Backup above).
 2. Pull code and review new migrations.
@@ -350,6 +448,8 @@ Volume `postgres_data` survives:
 
 ### Deployment
 
+- [ ] GitHub Actions secrets configured (`DEPLOY_*`) if using CI/CD
+- [ ] Deploy user in `docker` group; SSH key in `authorized_keys`
 - [ ] `git clone` to `/opt/sk-store` (or chosen path)
 - [ ] Docker images built with `--env-file .env.production`
 - [ ] PostgreSQL healthy
