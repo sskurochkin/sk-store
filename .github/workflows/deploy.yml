@@ -1,0 +1,46 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.DEPLOY_PATH }}"
+
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+
+            mkdir -p ~/backups
+            docker compose -f docker-compose.prod.yml --env-file .env.production exec -T postgres \
+              pg_dump -U skstore_app -d skstore --no-owner --format=custom \
+              > ~/backups/skstore-$(date +%Y%m%d-%H%M%S).dump
+
+            docker compose -f docker-compose.prod.yml --env-file .env.production build
+            docker compose -f docker-compose.prod.yml --env-file .env.production run --rm backend npx prisma migrate deploy
+            docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+
+            docker compose -f docker-compose.prod.yml --env-file .env.production ps
+            curl -fsS http://127.0.0.1:3000/ >/dev/null
+            curl -fsS http://127.0.0.1:3000/api/health >/dev/null
+
+            docker image prune -f
