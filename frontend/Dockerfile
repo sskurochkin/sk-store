@@ -14,6 +14,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Busts Docker layer cache on deploy when git commit changes (set in compose / CI).
+ARG GIT_COMMIT=unknown
+
 # Server-only Nest origin (rewrites / SSR / middleware — not in client bundle)
 ARG API_INTERNAL_URL=http://backend:3001
 # Public site origin (metadata / OG — embedded in client where used)
@@ -24,7 +27,7 @@ ENV API_INTERNAL_URL=$API_INTERNAL_URL
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_IMAGE_REMOTE_HOSTS=$NEXT_PUBLIC_IMAGE_REMOTE_HOSTS
 
-RUN npm run build
+RUN echo "Build commit: ${GIT_COMMIT}" && npm run build
 
 FROM node:20.18-alpine AS runner
 

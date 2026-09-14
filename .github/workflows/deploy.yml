@@ -48,23 +48,6 @@ jobs:
           fi
           ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
 
-      - name: Git pull on server
-        run: |
-          ssh -i ~/.ssh/deploy_key \
-            -o BatchMode=yes \
-            -o ServerAliveInterval=30 \
-            -o ServerAliveCountMax=120 \
-            "${DEPLOY_USER}@${DEPLOY_HOST}" bash -s << EOF
-          set -euxo pipefail
-          cd "${DEPLOY_PATH}"
-          test -f .env.production
-          docker compose version
-          git fetch origin main
-          git checkout main
-          git pull --ff-only origin main
-          echo "==> Git at: \$(git log -1 --oneline)"
-          EOF
-
       - name: Database backup (best-effort)
         run: |
           ssh -i ~/.ssh/deploy_key \
@@ -89,7 +72,7 @@ jobs:
           fi
           EOF
 
-      - name: Build, migrate, and start
+      - name: Pull, build, migrate, and start
         run: |
           ssh -i ~/.ssh/deploy_key \
             -o BatchMode=yes \
@@ -100,14 +83,24 @@ jobs:
           cd "${DEPLOY_PATH}"
           COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.production"
 
-          echo "==> Docker build (may take several minutes)"
+          test -f .env.production
+          docker compose version
+
+          echo "==> Git fetch and pull"
+          git fetch origin main
+          git checkout main
+          git pull --ff-only origin main
+          export GIT_COMMIT="\$(git rev-parse HEAD)"
+          echo "==> Git at: \$(git log -1 --oneline)"
+
+          echo "==> Docker build for commit \${GIT_COMMIT} (may take several minutes)"
           export DOCKER_BUILDKIT=1
           \$COMPOSE build --progress=plain
 
           echo "==> Prisma migrate deploy"
           \$COMPOSE run --rm backend npx prisma migrate deploy
 
-          echo "==> Docker up (same session as build — force-recreate app containers)"
+          echo "==> Docker up (force-recreate app containers)"
           \$COMPOSE up -d --force-recreate --wait backend frontend
 
           echo "==> Container status"
