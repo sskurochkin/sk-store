@@ -176,7 +176,7 @@ Routes: `/admin/login`, `/admin` dashboard, Products, News, Orders, Contact Requ
 
 ### Docs
 
-See `docs/` for details: `architecture.md`, `api.md`, `authentication.md`, `database.md`, `deployment.md`, `security.md`.
+See `docs/` for details: `architecture.md`, `api.md`, `authentication.md`, `database.md`, `deployment.md`, `docker-deployment-ru.md` (RU), `security.md`.
 
 Production checklist (secrets, CORS, cookie Secure, rate limits, rotate seed admin) lives in `docs/security.md` and `docs/deployment.md`.
 

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getSiteUrl } from "@/constants/site";
 import { getSiteSettings } from "@/services/settings";
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
@@ -19,5 +20,6 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
       allow: "/",
       disallow: ["/admin/", "/api/"],
     },
+    sitemap: `${getSiteUrl()}/sitemap.xml`,
   };
 }
