@@ -1,5 +1,7 @@
 # Deployment
 
+> **Русская инструкция:** подробное пошаговое руководство по Docker-деплою, обновлению и troubleshooting — [`docker-deployment-ru.md`](./docker-deployment-ru.md).
+
 ## Architectures
 
 ### Development (host PostgreSQL)

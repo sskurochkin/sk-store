@@ -241,7 +241,7 @@ After successful admin create/update/delete, client forms call authenticated Ser
 - Product/news detail: OG image from `mainPhoto` only when it is an absolute `http(s)` URL
 - `/cart` and `/admin/*`: `robots: { index: false, follow: false }`
 - Images: `MediaImage` → `next/image`; `remotePatterns` include `example.com` plus optional `NEXT_PUBLIC_IMAGE_REMOTE_HOSTS`
-- Performance: public catalog/news/socials via RSC + ISR tags (Phase 23); cart/checkout client only where needed; no sitemap/robots.txt/JSON-LD yet (Future §17)
+- Performance: public catalog/news/socials via RSC + ISR tags (Phase 23); cart/checkout client only where needed; `sitemap.xml` + `robots.txt` via App Router metadata routes; JSON-LD not yet (Future §17)
 
 ### Security review (Phase 25)
 
