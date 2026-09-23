@@ -83,6 +83,37 @@ export async function apiGet<T>(
 }
 
 /**
+ * Multipart POST helper (file uploads).
+ * Do not set Content-Type — the browser adds the multipart boundary.
+ */
+export async function apiUpload<T>(
+  path: string,
+  formData: FormData,
+  options: FetchOptions = {},
+): Promise<T> {
+  const response = await fetch(buildUrl(path), {
+    method: "POST",
+    headers: buildHeaders({ Accept: "application/json" }, options.cookie),
+    body: formData,
+    cache: "no-store",
+    credentials: options.credentials ?? "same-origin",
+  });
+
+  if (!response.ok) {
+    let message = `API request failed: ${response.status} ${response.statusText}`;
+    try {
+      const errorBody: unknown = await response.json();
+      message = extractErrorMessage(errorBody, message);
+    } catch {
+      // keep status text fallback
+    }
+    throw new ApiError(message, response.status);
+  }
+
+  return (await response.json()) as T;
+}
+
+/**
  * JSON POST helper (checkout, contact form, auth).
  * Browser uses same-origin `/api/...` so Set-Cookie binds to the Next host.
  */
