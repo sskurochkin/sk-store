@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
 import { RichTextEditor } from "@/components/admin/news/RichTextEditor";
 import { Button } from "@/components/ui/Button/Button";
 import { Input } from "@/components/ui/Input/Input";
@@ -140,14 +141,23 @@ export function NewsForm(props: NewsFormProps) {
         {...register("description")}
       />
 
-      <Input
-        id="news-main-photo"
-        label="Main photo"
-        required
-        disabled={isSubmitting}
-        hint="URL или storage key"
-        error={errors.mainPhoto?.message}
-        {...register("mainPhoto")}
+      <Controller
+        name="mainPhoto"
+        control={control}
+        render={({ field }) => (
+          <ImageUploadField
+            showUrlInput
+            required
+            urlInputId="news-main-photo"
+            urlInputLabel="Main photo"
+            urlHint="URL или загрузите файл"
+            label="Загрузить изображение"
+            value={field.value}
+            onChange={field.onChange}
+            disabled={isSubmitting}
+            error={errors.mainPhoto?.message}
+          />
+        )}
       />
 
       <Controller

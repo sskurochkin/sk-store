@@ -62,6 +62,10 @@
   color: var(--color-danger);
 }
 
+.urlField {
+  width: 100%;
+}
+
 .preview {
   max-width: 12rem;
 }

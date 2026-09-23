@@ -494,9 +494,45 @@ MEDIA_UPLOAD_RATE_TTL_MS=60000
 
 **Restore:** restore DB and media volume (or copied files) together; Media DB rows reference `/media/...` paths.
 
-**Production routing:** Nginx/frontend currently proxy public traffic to Next.js. To expose `/media/*` from the backend in production, add a reverse-proxy rule to the backend (or a Next.js rewrite to `http://backend:3001/media/*`). Direct access to backend `:3001` from the Internet must remain blocked.
+**Production routing:** Nginx proxies all public traffic to Next.js (`127.0.0.1:3000`). Next.js rewrites `/media/*` to the backend (`API_INTERNAL_URL`). Do **not** expose backend `:3001` or postgres to the Internet.
 
 The backend entrypoint ensures `/app/public/media` exists and is writable by the `nestjs` runtime user before starting the app.
+
+### Media persistence acceptance test
+
+Use this sequence on the production stack (never use `docker compose down -v` — that deletes volumes):
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+# 1. Admin login → upload image → verify GET /api/media and GET /media/<filename>
+# 2. Assign image to Product.mainPhoto and another to News.mainPhoto
+docker compose -f docker-compose.prod.yml restart backend
+# 3. Verify files, DB records, Product/News references, thumbnails
+docker compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+# 4. Verify media records, files, Product/News still reference images; DELETE unused media works; DELETE used media returns 409
+```
+
+### Media backup and restore
+
+| Component | What to back up | Restore notes |
+| --- | --- | --- |
+| PostgreSQL | `postgres_data` volume or `pg_dump` | Media rows in `Media` table reference `/media/...` paths |
+| Media files | `media_data` volume → `/app/public/media` | Must restore together with DB; orphaned files without DB rows are harmless; DB rows without files show broken thumbnails |
+
+Example backup (from host):
+
+```bash
+# Database
+docker compose -f docker-compose.prod.yml exec -T postgres \
+  pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" > skstore-$(date +%F).sql
+
+# Media files
+docker compose -f docker-compose.prod.yml exec -T backend \
+  tar -czf - -C /app/public media > skstore-media-$(date +%F).tar.gz
+```
+
+Example restore: restore SQL into postgres, extract `media/` into the backend volume mount path.
 
 ---
 

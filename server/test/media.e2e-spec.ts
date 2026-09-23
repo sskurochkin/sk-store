@@ -134,7 +134,63 @@ describe('Media (e2e)', () => {
     await request(app.getHttpServer()).get(body.path).expect(404);
   });
 
-  it('DELETE /media/:id returns 409 when media path is used by product', async () => {
+  it('DELETE /media/:id returns 409 when media path is used by product gallery', async () => {
+    const agent = await loginAgent();
+    const buffer = createTestJpegBuffer();
+
+    const uploadResponse = await agent
+      .post(`${prefix}/media/upload`)
+      .attach('file', buffer, 'gallery-used.jpg')
+      .expect(201);
+
+    const body = uploadResponse.body as MediaBody;
+    createdMediaIds.push(body.id);
+
+    const product = await prisma.product.create({
+      data: {
+        name: 'Gallery media usage',
+        alias: `media-gallery-${Date.now()}`,
+        description: 'Test',
+        mainPhoto: 'https://example.com/other.jpg',
+        gallery: [body.path],
+        price: '10.00',
+      },
+    });
+
+    await agent.delete(`${prefix}/media/${body.id}`).expect(409);
+
+    await prisma.product.delete({ where: { id: product.id } });
+  });
+
+  it('DELETE /media/:id returns 409 when media path is used by news', async () => {
+    const agent = await loginAgent();
+    const buffer = createTestJpegBuffer();
+
+    const uploadResponse = await agent
+      .post(`${prefix}/media/upload`)
+      .attach('file', buffer, 'news-used.jpg')
+      .expect(201);
+
+    const body = uploadResponse.body as MediaBody;
+    createdMediaIds.push(body.id);
+
+    const news = await prisma.news.create({
+      data: {
+        title: 'News media usage',
+        alias: `media-news-${Date.now()}`,
+        description: 'Test',
+        mainPhoto: body.path,
+        content: '<p>Test</p>',
+        tags: [],
+      },
+    });
+
+    await agent.delete(`${prefix}/media/${body.id}`).expect(409);
+
+    await prisma.news.delete({ where: { id: news.id } });
+  });
+
+  it('DELETE /media/:id returns 409 when media path is used by product mainPhoto', async () => {
     const agent = await loginAgent();
     const buffer = createTestJpegBuffer();
 

@@ -72,7 +72,9 @@ HTML sanitization (`sanitize-html`) allowlist:
 
 Errors: `400` validation, `401` unauthenticated write, `404` missing news, `409` alias conflict.
 
-### Media (Phase 30A — backend only)
+### Media (Phase 30A–30C)
+
+Admin UI: `/admin/media` (library grid, upload, delete). Product/News admin forms use the same upload component — values remain plain strings (`mainPhoto`, `gallery[]`).
 
 Admin (HTTP-only auth cookie required):
 

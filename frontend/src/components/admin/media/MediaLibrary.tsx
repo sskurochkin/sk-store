@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
 import { MediaDeleteButton } from "@/components/admin/media/MediaDeleteButton";
+import { Button } from "@/components/ui/Button/Button";
 import {
   EmptyState,
   ErrorState,
@@ -57,6 +58,15 @@ export function MediaLibrary({
   function handleDeleted(mediaId: string) {
     setItems((current) => current.filter((item) => item.id !== mediaId));
     showToast("Изображение удалено");
+  }
+
+  async function copyPath(path: string) {
+    try {
+      await navigator.clipboard.writeText(path);
+      showToast(`Скопировано: ${path}`);
+    } catch {
+      showToast("Не удалось скопировать путь");
+    }
   }
 
   if (isLoading) {
@@ -120,6 +130,17 @@ export function MediaLibrary({
                 <p className={styles.detail}>{formatMediaDate(item.createdAt)}</p>
               </div>
               <div className={styles.actions}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    void copyPath(item.path);
+                  }}
+                  aria-label={`Копировать путь ${item.path}`}
+                >
+                  Копировать путь
+                </Button>
                 <MediaDeleteButton
                   mediaId={item.id}
                   originalName={item.originalName}

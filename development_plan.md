@@ -936,7 +936,20 @@ Before MVP completion verify:
 - image validation via `sharp` (JPEG/PNG/WebP);
 - usage check against existing `Product.mainPhoto` / `gallery` / `News.mainPhoto` string paths;
 - public static serving at `/media/<filename>`;
-- **Out of scope:** admin Media UI, Product/News form integration, foreign keys on existing image fields.
+- **Out of scope:** foreign keys on existing image fields, orphan cleanup.
+
+### Phase 30B — Admin Media Library (done)
+- `/admin/media` grid, upload, delete, metadata;
+- reusable `ImageUploadField`;
+- Next.js rewrite `/media/*` → backend.
+
+### Phase 30C — Product/News Integration & Production Persistence (done)
+- Product admin: `mainPhoto` + `gallery` upload via `ImageUploadField` / `ImageGalleryField`;
+- News admin: `mainPhoto` upload;
+- existing external URLs preserved (manual input + preview);
+- gallery remove = form-only (does not DELETE Media);
+- Docker `media_data` volume documented + persistence test procedure;
+- **Out of scope:** Media Picker, orphan cleanup, Product/News schema changes.
 
 ---
 
