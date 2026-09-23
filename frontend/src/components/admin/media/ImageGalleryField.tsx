@@ -97,6 +97,7 @@ export function ImageGalleryField({
       <div className={styles.actions}>
         <ImageUploadField
           hidePreview
+          size="sm"
           label="Добавить изображение"
           disabled={disabled}
           onUploadSuccess={(media) => {

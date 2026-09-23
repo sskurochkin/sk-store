@@ -14,6 +14,7 @@ import type { Media } from "@/types/media";
 import styles from "./ImageUploadField.module.css";
 
 export type ImageUploadFieldProps = {
+  size?: "sm" | "md" | "lg";
   /** Public path e.g. `/media/uuid.webp` or external URL */
   value?: string | null;
   onChange?: (path: string | null) => void;
@@ -47,6 +48,7 @@ function previewLabelFromPath(path: string): string {
 }
 
 export function ImageUploadField({
+  size = "md",
   value = null,
   onChange,
   onUploadSuccess,
@@ -102,7 +104,7 @@ export function ImageUploadField({
   const alt = previewAlt ?? (previewSrc ? previewLabelFromPath(previewSrc) : "Изображение");
 
   return (
-    <div className={styles.root}>
+    <div className={clsx(styles.root, styles[size])}>
       {showUrlInput ? (
         <Input
           id={urlInputId}

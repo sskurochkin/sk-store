@@ -27,12 +27,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.5rem;
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-md);
   background-color: var(--color-primary);
   color: #faf8f5;
   font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-md);
   cursor: pointer;
   transition: background-color var(--transition-fast);
 }
@@ -75,4 +75,9 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
+}
+
+.sm .fileLabel {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-sm);
 }

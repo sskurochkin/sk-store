@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AdminEditIconLink } from "@/components/admin/AdminEditIconLink";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { NewsArticleContent } from "@/components/news/NewsArticleContent";
 import { RelatedNewsList } from "@/components/news/RelatedNewsList";
@@ -12,6 +13,7 @@ import { Section } from "@/components/ui/Section/Section";
 import { Text } from "@/components/ui/Text/Text";
 import { formatDisplayDate } from "@/lib/format-date";
 import { buildPageMetadata } from "@/lib/seo";
+import { getCurrentUser } from "@/services/auth-server";
 import {
   getNewsByAlias,
   getNewsList,
@@ -43,7 +45,10 @@ export async function generateMetadata({
 
 export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
   const { alias } = await params;
-  const news = await getNewsByAlias(alias);
+  const [news, admin] = await Promise.all([
+    getNewsByAlias(alias),
+    getCurrentUser(),
+  ]);
 
   if (!news) {
     notFound();
@@ -67,12 +72,20 @@ export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
       aria-labelledby="news-article-heading"
     >
       <Container>
-        <Breadcrumbs
-          items={[
-            { label: "Новости", href: "/news" },
-            { label: news.title },
-          ]}
-        />
+        <div className={styles.pageTop}>
+          <Breadcrumbs
+            items={[
+              { label: "Новости", href: "/news" },
+              { label: news.title },
+            ]}
+          />
+          {admin ? (
+            <AdminEditIconLink
+              href={`/admin/news/${news.id}/edit`}
+              label={`Редактировать «${news.title}»`}
+            />
+          ) : null}
+        </div>
 
         <div
           className={clsx(

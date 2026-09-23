@@ -49,6 +49,14 @@ export default async function AdminEditProductPage({
         </Link>
         <Heading level={1}>Редактирование</Heading>
         <Text muted>{product.name}</Text>
+        <Link
+          href={`/products/${product.alias}`}
+          className={styles.publicLink}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Открыть на сайте
+        </Link>
       </header>
 
       <ProductForm mode="edit" product={product} />

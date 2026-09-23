@@ -53,6 +53,25 @@
   text-decoration: underline;
 }
 
+.publicLink {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  color: var(--color-primary);
+}
+
+.publicLink:hover {
+  text-decoration: underline;
+}
+
+.publicLink:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
 .dangerZone {
   margin-top: var(--space-10);
   padding-top: var(--space-6);
