@@ -32,3 +32,7 @@ lerna-debug.log*
 # Prisma
 /prisma/*.db
 /prisma/*.db-journal
+
+# Uploaded media (keep directory via .gitkeep)
+/public/media/*
+!/public/media/.gitkeep

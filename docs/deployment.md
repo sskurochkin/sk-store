@@ -466,6 +466,40 @@ Monitor disk usage: `docker system df`.
 
 ---
 
+## Media file storage (Phase 30A)
+
+Uploaded images are stored on the **backend filesystem**, not in PostgreSQL.
+
+| Item | Value |
+| --- | --- |
+| Container path | `/app/public/media` |
+| Docker volume | `media_data` (backend service only) |
+| Public URL | `/media/<filename>` (served by Nest/Express static middleware) |
+| Max upload size | `MEDIA_MAX_FILE_SIZE` (default `10485760` = 10 MB) |
+
+Environment (backend):
+
+```text
+MEDIA_MAX_FILE_SIZE=10485760
+MEDIA_UPLOAD_RATE_LIMIT=10
+MEDIA_UPLOAD_RATE_TTL_MS=60000
+# Optional override for non-default storage path:
+# MEDIA_STORAGE_DIR=/app/public/media
+```
+
+**Backup:** PostgreSQL backup alone is **not** sufficient. Back up both:
+
+1. PostgreSQL (`postgres_data` / `pg_dump`)
+2. Media files (`media_data` volume — e.g. archive `/app/public/media` from the backend container)
+
+**Restore:** restore DB and media volume (or copied files) together; Media DB rows reference `/media/...` paths.
+
+**Production routing:** Nginx/frontend currently proxy public traffic to Next.js. To expose `/media/*` from the backend in production, add a reverse-proxy rule to the backend (or a Next.js rewrite to `http://backend:3001/media/*`). Direct access to backend `:3001` from the Internet must remain blocked.
+
+The backend entrypoint ensures `/app/public/media` exists and is writable by the `nestjs` runtime user before starting the app.
+
+---
+
 ## PostgreSQL persistence
 
 Volume `postgres_data` survives:

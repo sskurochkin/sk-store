@@ -5,6 +5,9 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { GLOBAL_API_PREFIX } from '../src/common/constants/app.constants';
 import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter';
+import type { AppConfig } from '../src/config/configuration';
+import { configureMediaStatic } from '../src/media/configure-media-static';
+import { ConfigService } from '@nestjs/config';
 
 export type ProviderOverride = {
   provide: Type<unknown> | string | symbol;
@@ -37,6 +40,8 @@ export async function createAuthTestApp(
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
+  const configService = app.get(ConfigService<AppConfig, true>);
+  await configureMediaStatic(app, configService);
   await app.init();
   return app;
 }

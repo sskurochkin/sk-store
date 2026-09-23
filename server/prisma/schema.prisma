@@ -163,3 +163,17 @@ model ContactRequest {
   @@index([status])
   @@index([createdAt])
 }
+
+model Media {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  path         String   @unique
+  width        Int?
+  height       Int?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+}

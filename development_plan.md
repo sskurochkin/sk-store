@@ -916,6 +916,28 @@ Before MVP completion verify:
 - deployment documentation;
 - backups/operational notes.
 
+### Phase 28 — Production Docker Preparation
+- production Dockerfiles;
+- `docker-compose.prod.yml`;
+- PostgreSQL volume;
+- Nginx example;
+- deployment docs.
+
+### Phase 29 — Server Deployment Preparation
+- localhost-only frontend bind;
+- `API_INTERNAL_URL`;
+- env-driven admin seed;
+- production deployment checklist.
+
+### Phase 30A — Media Backend & Storage (done)
+- Prisma `Media` model + migration;
+- admin upload/list/delete API (`/api/media/*`);
+- filesystem storage under `server/public/media` (Docker volume `media_data`);
+- image validation via `sharp` (JPEG/PNG/WebP);
+- usage check against existing `Product.mainPhoto` / `gallery` / `News.mainPhoto` string paths;
+- public static serving at `/media/<filename>`;
+- **Out of scope:** admin Media UI, Product/News form integration, foreign keys on existing image fields.
+
 ---
 
 ## 20. Recommended Implementation Order

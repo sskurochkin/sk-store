@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 import { GLOBAL_API_PREFIX } from './common/constants/app.constants';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import type { AppConfig } from './config/configuration';
+import { configureMediaStatic } from './media/configure-media-static';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +16,7 @@ async function bootstrap() {
   app.setGlobalPrefix(GLOBAL_API_PREFIX);
   app.enableShutdownHooks();
   app.use(cookieParser());
+  await configureMediaStatic(app, configService);
 
   app.useGlobalPipes(
     new ValidationPipe({

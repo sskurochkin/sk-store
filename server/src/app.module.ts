@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ProductsModule } from './products/products.module';
 import { HomeBenefitsModule } from './home-benefits/home-benefits.module';
 import { LegalPagesModule } from './legal-pages/legal-pages.module';
+import { MediaModule } from './media/media.module';
 import { SettingsModule } from './settings/settings.module';
 import { SocialsModule } from './socials/socials.module';
 
@@ -28,6 +29,7 @@ import { SocialsModule } from './socials/socials.module';
     SettingsModule,
     HomeBenefitsModule,
     LegalPagesModule,
+    MediaModule,
     EmailModule,
   ],
   controllers: [HealthController],
