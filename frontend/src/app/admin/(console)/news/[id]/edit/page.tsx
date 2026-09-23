@@ -49,6 +49,14 @@ export default async function AdminEditNewsPage({
         </Link>
         <Heading level={1}>Редактирование</Heading>
         <Text muted>{item.title}</Text>
+        <Link
+          href={`/news/${item.alias}`}
+          className={styles.publicLink}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Открыть на сайте
+        </Link>
       </header>
 
       <NewsForm mode="edit" news={item} />

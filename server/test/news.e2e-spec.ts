@@ -228,6 +228,34 @@ describe('News (e2e)', () => {
     await agent.delete(`${prefix}/news/${newsB.id}`).expect(204);
   });
 
+  it('POST and PATCH /news accept /media paths and external URLs', async () => {
+    const agent = await loginAgent();
+    const uniqueAlias = `media-news-path-${Date.now()}`;
+    const mediaMain = '/media/news-cover.webp';
+
+    const createResponse = await agent
+      .post(`${prefix}/news`)
+      .send({
+        ...validNews,
+        alias: uniqueAlias,
+        mainPhoto: mediaMain,
+      })
+      .expect(201);
+
+    const created = createResponse.body as NewsBody;
+    expect(created.mainPhoto).toBe(mediaMain);
+
+    const updatedMain = 'https://example.com/external-cover.jpg';
+    const updated = await agent
+      .patch(`${prefix}/news/${created.id}`)
+      .send({ mainPhoto: updatedMain })
+      .expect(200);
+
+    expect((updated.body as NewsBody).mainPhoto).toBe(updatedMain);
+
+    await agent.delete(`${prefix}/news/${created.id}`).expect(204);
+  });
+
   it('DELETE /news/:id requires auth and removes news', async () => {
     const agent = await loginAgent();
     const uniqueAlias = `delete-news-${Date.now()}`;

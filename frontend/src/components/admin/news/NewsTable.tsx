@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AdminEditIconLink } from "@/components/admin/AdminEditIconLink";
 import { AdminTablePagination } from "@/components/admin/AdminTablePagination";
 import { useAdminTablePage } from "@/lib/admin-table";
 import type { News } from "@/types/news";
@@ -55,12 +55,10 @@ export function NewsTable({ items }: NewsTableProps) {
                 <td className={styles.td}>{formatDate(item.createdAt)}</td>
                 <td className={styles.td}>
                   <div className={styles.actions}>
-                    <Link
+                    <AdminEditIconLink
                       href={`/admin/news/${item.id}/edit`}
-                      className={styles.link}
-                    >
-                      Изменить
-                    </Link>
+                      label={`Редактировать «${item.title}»`}
+                    />
                   </div>
                 </td>
               </tr>

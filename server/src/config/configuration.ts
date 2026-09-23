@@ -1,3 +1,10 @@
+import { join } from 'path';
+import {
+  MEDIA_DEFAULT_MAX_FILE_SIZE_BYTES,
+  MEDIA_DEFAULT_UPLOAD_RATE_LIMIT,
+  MEDIA_DEFAULT_UPLOAD_RATE_TTL_MS,
+} from '../media/constants/media.constants';
+
 export type AppConfig = {
   nodeEnv: 'development' | 'production' | 'test';
   port: number;
@@ -21,6 +28,12 @@ export type AppConfig = {
     loginRateTtlMs: number;
     publicWriteRateLimit: number;
     publicWriteRateTtlMs: number;
+    mediaUploadRateLimit: number;
+    mediaUploadRateTtlMs: number;
+  };
+  media: {
+    storageDir: string;
+    maxFileSizeBytes: number;
   };
   email: {
     smtpHost: string | null;
@@ -196,6 +209,23 @@ export default function configuration(): AppConfig {
       publicWriteRateTtlMs: parsePositiveInt(
         process.env.PUBLIC_WRITE_RATE_TTL_MS,
         60_000,
+      ),
+      mediaUploadRateLimit: parsePositiveInt(
+        process.env.MEDIA_UPLOAD_RATE_LIMIT,
+        MEDIA_DEFAULT_UPLOAD_RATE_LIMIT,
+      ),
+      mediaUploadRateTtlMs: parsePositiveInt(
+        process.env.MEDIA_UPLOAD_RATE_TTL_MS,
+        MEDIA_DEFAULT_UPLOAD_RATE_TTL_MS,
+      ),
+    },
+    media: {
+      storageDir:
+        optionalEnv('MEDIA_STORAGE_DIR') ??
+        join(process.cwd(), 'public', 'media'),
+      maxFileSizeBytes: parsePositiveInt(
+        process.env.MEDIA_MAX_FILE_SIZE,
+        MEDIA_DEFAULT_MAX_FILE_SIZE_BYTES,
       ),
     },
     email: {

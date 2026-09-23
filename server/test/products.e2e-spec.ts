@@ -212,6 +212,46 @@ describe('Products (e2e)', () => {
     await agent.delete(`${prefix}/products/${productB.id}`).expect(204);
   });
 
+  it('POST and PATCH /products accept /media paths and external URLs', async () => {
+    const agent = await loginAgent();
+    const uniqueAlias = `media-path-${Date.now()}`;
+    const mediaMain = '/media/test-main.webp';
+    const mediaGallery = '/media/test-gallery.webp';
+
+    const createResponse = await agent
+      .post(`${prefix}/products`)
+      .send({
+        ...validProduct,
+        alias: uniqueAlias,
+        mainPhoto: mediaMain,
+        gallery: [mediaGallery, 'https://example.com/extra.jpg'],
+      })
+      .expect(201);
+
+    const created = createResponse.body as ProductBody;
+    expect(created.mainPhoto).toBe(mediaMain);
+    expect(created.gallery).toEqual([
+      mediaGallery,
+      'https://example.com/extra.jpg',
+    ]);
+
+    const updatedMain = '/media/updated-main.webp';
+    const updated = await agent
+      .patch(`${prefix}/products/${created.id}`)
+      .send({
+        mainPhoto: updatedMain,
+        gallery: ['https://example.com/only-external.jpg'],
+      })
+      .expect(200);
+
+    expect(updated.body).toMatchObject({
+      mainPhoto: updatedMain,
+      gallery: ['https://example.com/only-external.jpg'],
+    });
+
+    await agent.delete(`${prefix}/products/${created.id}`).expect(204);
+  });
+
   it('DELETE /products/:id requires auth and removes product', async () => {
     const agent = await loginAgent();
     const uniqueAlias = `delete-bread-${Date.now()}`;

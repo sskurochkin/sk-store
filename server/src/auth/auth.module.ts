@@ -45,6 +45,15 @@ import { JwtStrategy } from './jwt.strategy';
             infer: true,
           }),
         },
+        {
+          name: 'mediaUpload',
+          ttl: configService.get('auth.mediaUploadRateTtlMs', {
+            infer: true,
+          }),
+          limit: configService.get('auth.mediaUploadRateLimit', {
+            infer: true,
+          }),
+        },
       ],
     }),
   ],

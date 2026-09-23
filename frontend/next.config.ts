@@ -63,6 +63,10 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         destination: `${nestOrigin}/api/:path*`,
       },
+      {
+        source: "/media/:path*",
+        destination: `${nestOrigin}/media/:path*`,
+      },
     ];
   },
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { AdminEditIconLink } from "@/components/admin/AdminEditIconLink";
 import { AdminTablePagination } from "@/components/admin/AdminTablePagination";
 import { formatPrice } from "@/lib/format-price";
 import { useAdminTablePage } from "@/lib/admin-table";
@@ -44,12 +44,10 @@ export function ProductsTable({ products }: ProductsTableProps) {
                 <td className={styles.td}>{formatPrice(product.price)}</td>
                 <td className={styles.td}>
                   <div className={styles.actions}>
-                    <Link
+                    <AdminEditIconLink
                       href={`/admin/products/${product.id}/edit`}
-                      className={styles.link}
-                    >
-                      Изменить
-                    </Link>
+                      label={`Редактировать «${product.name}»`}
+                    />
                   </div>
                 </td>
               </tr>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AdminEditIconLink } from "@/components/admin/AdminEditIconLink";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductPurchaseControls } from "@/components/product/ProductPurchaseControls";
@@ -9,6 +10,7 @@ import { Section } from "@/components/ui/Section/Section";
 import { Text } from "@/components/ui/Text/Text";
 import { formatPrice } from "@/lib/format-price";
 import { buildPageMetadata } from "@/lib/seo";
+import { getCurrentUser } from "@/services/auth-server";
 import { getProductByAlias } from "@/services/products";
 import styles from "./page.module.css";
 
@@ -38,7 +40,10 @@ export default async function ProductDetailPage({
   params,
 }: ProductDetailPageProps) {
   const { alias } = await params;
-  const product = await getProductByAlias(alias);
+  const [product, admin] = await Promise.all([
+    getProductByAlias(alias),
+    getCurrentUser(),
+  ]);
 
   if (!product) {
     notFound();
@@ -51,12 +56,20 @@ export default async function ProductDetailPage({
       aria-labelledby="product-heading"
     >
       <Container>
-        <Breadcrumbs
-          items={[
-            { label: "Продукты", href: "/products" },
-            { label: product.name },
-          ]}
-        />
+        <div className={styles.pageTop}>
+          <Breadcrumbs
+            items={[
+              { label: "Продукты", href: "/products" },
+              { label: product.name },
+            ]}
+          />
+          {admin ? (
+            <AdminEditIconLink
+              href={`/admin/products/${product.id}/edit`}
+              label={`Редактировать «${product.name}»`}
+            />
+          ) : null}
+        </div>
         <div className={styles.layout}>
           <ProductGallery
             name={product.name}

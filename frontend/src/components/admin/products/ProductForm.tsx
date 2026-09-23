@@ -3,7 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { ImageGalleryField } from "@/components/admin/media/ImageGalleryField";
+import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
 import { Button } from "@/components/ui/Button/Button";
 import { Input } from "@/components/ui/Input/Input";
 import { Textarea } from "@/components/ui/Textarea/Textarea";
@@ -139,59 +141,35 @@ export function ProductForm(props: ProductFormProps) {
         {...register("description")}
       />
 
-      <Input
-        id="product-main-photo"
-        label="Main photo"
-        required
-        disabled={isSubmitting}
-        hint="URL или storage key"
-        error={errors.mainPhoto?.message}
-        {...register("mainPhoto")}
+      <Controller
+        name="mainPhoto"
+        control={control}
+        render={({ field }) => (
+          <ImageUploadField
+            showUrlInput
+            required
+            urlInputId="product-main-photo"
+            urlInputLabel="Main photo"
+            urlHint="URL или загрузите файл"
+            label="Загрузить изображение"
+            value={field.value}
+            onChange={field.onChange}
+            disabled={isSubmitting}
+            error={errors.mainPhoto?.message}
+            previewAlt={field.value ? undefined : "Main photo"}
+          />
+        )}
       />
 
-      <div className={styles.gallery}>
-        <p className={styles.galleryLabel}>Галерея</p>
-        <p className={styles.galleryHint}>
-          Дополнительные URL изображений (необязательно).
-        </p>
-        <ul className={styles.galleryList}>
-          {fields.map((field, index) => (
-            <li key={field.id} className={styles.galleryItem}>
-              <Input
-                id={`product-gallery-${index}`}
-                label={`Фото ${index + 1}`}
-                disabled={isSubmitting}
-                error={errors.gallery?.[index]?.url?.message}
-                {...register(`gallery.${index}.url`)}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                disabled={isSubmitting}
-                onClick={() => remove(index)}
-              >
-                Удалить
-              </Button>
-            </li>
-          ))}
-        </ul>
-        {typeof errors.gallery?.message === "string" ||
-        typeof errors.gallery?.root?.message === "string" ? (
-          <p className={styles.fieldError} role="alert">
-            {errors.gallery.message ?? errors.gallery.root?.message}
-          </p>
-        ) : null}
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          disabled={isSubmitting}
-          onClick={() => append({ url: "" })}
-        >
-          Добавить URL
-        </Button>
-      </div>
+      <ImageGalleryField
+        control={control}
+        fields={fields}
+        append={append}
+        remove={remove}
+        register={register}
+        disabled={isSubmitting}
+        errors={errors.gallery}
+      />
 
       <Input
         id="product-price"

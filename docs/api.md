@@ -72,6 +72,26 @@ HTML sanitization (`sanitize-html`) allowlist:
 
 Errors: `400` validation, `401` unauthenticated write, `404` missing news, `409` alias conflict.
 
+### Media (Phase 30A–30C)
+
+Admin UI: `/admin/media` (library grid, upload, delete). Product/News admin forms use the same upload component — values remain plain strings (`mainPhoto`, `gallery[]`).
+
+Admin (HTTP-only auth cookie required):
+
+- `POST /api/media/upload` — multipart field `file`; validates image content (JPEG/PNG/WebP) via `sharp`; max size `MEDIA_MAX_FILE_SIZE` (default 10 MB); returns metadata including public `path` (`/media/<generated-filename>`)
+- `GET /api/media` — list metadata (`createdAt` desc)
+- `DELETE /api/media/:id` — delete unused media (`204`); `409` if path is referenced by Product/News string fields
+
+Public:
+
+- `GET /media/<filename>` — serves uploaded file from backend storage (no JWT)
+
+Upload rate limit: `mediaUpload` bucket (`MEDIA_UPLOAD_RATE_LIMIT` / `MEDIA_UPLOAD_RATE_TTL_MS`, default 10/min).
+
+Errors: `400` invalid/missing upload, `401` unauthenticated, `404` missing media, `409` media in use, `413` file too large, `415` unsupported image type.
+
+Product/News APIs are unchanged — they still accept URL/path strings in `mainPhoto` / `gallery`.
+
 ### Socials (MVP settings retrieval)
 
 Public:

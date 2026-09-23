@@ -29,7 +29,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 RUN apt-get update -y && \
-    apt-get install -y --no-install-recommends openssl && \
+    apt-get install -y --no-install-recommends openssl util-linux && \
     rm -rf /var/lib/apt/lists/* && \
     groupadd --system --gid 1001 nestjs && \
     useradd --system --uid 1001 --gid nestjs nestjs
@@ -44,9 +44,13 @@ RUN npm ci --omit=dev && \
     npm cache clean --force
 
 COPY --from=builder --chown=nestjs:nestjs /app/dist ./dist
-
-USER nestjs
+COPY --chown=nestjs:nestjs public ./public
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh && \
+    mkdir -p /app/public/media && \
+    chown -R nestjs:nestjs /app/public/media
 
 EXPOSE 3001
 
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["node", "dist/src/main"]

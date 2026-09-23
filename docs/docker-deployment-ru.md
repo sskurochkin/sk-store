@@ -585,7 +585,11 @@ GitHub → Actions → Deploy → Run workflow → включить **Force rebu
 
 ## 10. Резервное копирование и восстановление
 
-### 10.1. Backup PostgreSQL
+### 10.1. Backup PostgreSQL и Media
+
+> **Важно:** backup PostgreSQL **не достаточен** для полного восстановления сайта, если используются загруженные изображения (Phase 30A).
+
+**PostgreSQL:**
 
 ```bash
 cd ~/sk-store
@@ -599,6 +603,16 @@ ls -lh "$BACKUP"
 ```
 
 Храните бэкапы **вне** Docker volume (отдельная папка, облако, другой сервер).
+
+**Media files** (Docker volume `media_data` → `/app/public/media` в backend):
+
+```bash
+cd ~/sk-store
+BACKUP=~/backups/skstore-media-$(date +%Y%m%d-%H%M%S).tar.gz
+docker compose -f docker-compose.prod.yml --env-file .env.production exec -T backend \
+  tar -czf - -C /app/public/media . > "$BACKUP"
+ls -lh "$BACKUP"
+```
 
 ### 10.2. Восстановление из backup
 

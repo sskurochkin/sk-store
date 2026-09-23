@@ -138,11 +138,11 @@ docker compose -f docker-compose.prod.yml --env-file .env.production up -d
 
 Full workflow (backup, rollback, logs): `docs/deployment.md`.
 
-**Warning:** `docker compose down -v` deletes the database volume.
+**Warning:** `docker compose down -v` deletes named volumes (`postgres_data`, `media_data`). Back up both PostgreSQL and `/app/public/media` — see `docs/deployment.md`.
 
 ## Phase status
 
-**Completed through Phase 29 — Server Deployment Preparation.**
+**Completed through Phase 30C — Product/News Media Integration.**
 
 | Phases | Status | What landed |
 | --- | --- | --- |
@@ -157,6 +157,7 @@ Full workflow (backup, rollback, logs): `docs/deployment.md`.
 | 27 | Done | Production build/start verification, env/secrets audit, deployment docs |
 | 28 | Done | Production Dockerfiles, `docker-compose.prod.yml`, PostgreSQL volume, Nginx example |
 | 29 | Done | Localhost-only frontend bind, `API_INTERNAL_URL`, env-driven admin seed, deployment checklist |
+| 30A–C | Done | Media API + admin library + Product/News upload; Docker `media_data` volume |
 
 ### Public site
 
@@ -168,7 +169,7 @@ Routes: `/`, `/products`, `/products/[alias]`, `/news`, `/news/[alias]`, `/conta
 
 ### Admin
 
-Routes: `/admin/login`, `/admin` dashboard, Products, News, Orders, Contact Requests, Settings (general, contacts, map, SEO, socials, legal pages, home benefits).
+Routes: `/admin/login`, `/admin` dashboard, Products, News, Media, Orders, Contact Requests, Settings (general, contacts, map, SEO, socials, legal pages, home benefits).
 
 - Cookie auth on the Next origin; middleware + layout guard for `/admin/*`
 - List tables: page size `ADMIN_TABLE_PAGE_SIZE` (default 3); orders/contact-requests support column sorting; deletes use a confirmation modal

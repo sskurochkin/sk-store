@@ -442,6 +442,8 @@ Image handling must support:
 - product gallery;
 - main news photo.
 
+Media registry (Phase 30): files in `server/public/media` (production: Docker volume `media_data` → `/app/public/media`). Admin upload via `/api/media/upload`; public URLs `/media/<filename>`. Product/News store path strings only — no `mediaId` FK. Back up PostgreSQL **and** the media volume together.
+
 Keep provider-specific code isolated.
 
 ---

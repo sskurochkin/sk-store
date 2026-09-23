@@ -916,6 +916,41 @@ Before MVP completion verify:
 - deployment documentation;
 - backups/operational notes.
 
+### Phase 28 — Production Docker Preparation
+- production Dockerfiles;
+- `docker-compose.prod.yml`;
+- PostgreSQL volume;
+- Nginx example;
+- deployment docs.
+
+### Phase 29 — Server Deployment Preparation
+- localhost-only frontend bind;
+- `API_INTERNAL_URL`;
+- env-driven admin seed;
+- production deployment checklist.
+
+### Phase 30A — Media Backend & Storage (done)
+- Prisma `Media` model + migration;
+- admin upload/list/delete API (`/api/media/*`);
+- filesystem storage under `server/public/media` (Docker volume `media_data`);
+- image validation via `sharp` (JPEG/PNG/WebP);
+- usage check against existing `Product.mainPhoto` / `gallery` / `News.mainPhoto` string paths;
+- public static serving at `/media/<filename>`;
+- **Out of scope:** foreign keys on existing image fields, orphan cleanup.
+
+### Phase 30B — Admin Media Library (done)
+- `/admin/media` grid, upload, delete, metadata;
+- reusable `ImageUploadField`;
+- Next.js rewrite `/media/*` → backend.
+
+### Phase 30C — Product/News Integration & Production Persistence (done)
+- Product admin: `mainPhoto` + `gallery` upload via `ImageUploadField` / `ImageGalleryField`;
+- News admin: `mainPhoto` upload;
+- existing external URLs preserved (manual input + preview);
+- gallery remove = form-only (does not DELETE Media);
+- Docker `media_data` volume documented + persistence test procedure;
+- **Out of scope:** Media Picker, orphan cleanup, Product/News schema changes.
+
 ---
 
 ## 20. Recommended Implementation Order
